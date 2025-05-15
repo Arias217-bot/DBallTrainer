@@ -1,0 +1,83 @@
+# === Entornos virtuales y configuración de entorno ===
+venv/
+.env
+*.env
+
+# === Archivos de caché de Python ===
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.so
+
+# === Configuración del editor ===
+.vscode/
+
+# === Logs y bases de datos locales ===
+*.log
+*.tmp
+*.bak
+*.swp
+*.sqlite3
+db.sqlite3
+
+# === Archivos de dependencias ===
+pip-log.txt
+pip-delete-this-directory.txt
+
+# === Archivos temporales y del sistema operativo ===
+*.DS_Store
+Thumbs.db
+
+# === Archivos multimedia ===
+*.mp4
+
+# === Ignorar todo por defecto ===
+*
+
+# === No ignorar archivos principales del proyecto ===
+!main.py
+!multi_person_detector.py
+!integration.py
+!app.py
+!requirements.txt
+!README.md
+!.gitignore
+
+# === No ignorar carpetas principales del proyecto ===
+!detecciones/
+!evaluaciones/
+!fonts/
+!routes/
+!Salidas/
+!models/
+!utils/
+!Estadistica/
+
+# === Ignorar el contenido dentro de las carpetas, excepto archivos específicos ===
+detecciones/*
+evaluaciones/*
+fonts/*
+Salidas/*
+models/*
+
+# === No ignorar archivos específicos dentro de carpetas ===
+!detecciones/**/*.py
+!evaluaciones/**/*.py
+!fonts/**/*.ttf
+
+# === Archivos generados en salidas ===
+Salidas/*.csv
+Salidas/*.avi
+Salidas/*.mp4
+Salidas/*.json
+
+# === Archivos estáticos subidos y procesados ===
+static/uploads/*
+!static/uploads/.gitkeep
+static/processed/*
+!static/processed/.gitkeep
+
+# === Archivos de la carpeta Videos ===
+Videos/*
+!Videos/.gitkeep
