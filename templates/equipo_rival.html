@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Equipos Rivales</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      padding: 1rem;
+    }
+    .card-container {
+      max-width: 700px;
+      margin: auto;
+    }
+    .card-list {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card-container">
+    <div class="mb-4">
+      <form method="GET" action="{{ url_for('equipo_rival.equipo_rival_page') }}" class="d-flex">
+        <input type="text" name="q" class="form-control me-2" placeholder="Buscar equipo rival..." value="{{ q }}">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+      </form>
+    </div>
+
+    <!-- Botones para formularios -->
+    <div class="text-center mb-3 d-flex justify-content-center gap-2">
+      <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#manualFormPanel" aria-expanded="false" aria-controls="manualFormPanel">
+        ➕ Crear Nuevo Equipo Rival
+      </button>
+      <button class="btn btn-info text-white" type="button" data-bs-toggle="collapse" data-bs-target="#autoUploadPanel" aria-expanded="false" aria-controls="autoUploadPanel">
+        📁 Carga Automática
+      </button>
+    </div>
+
+    <!-- Formulario manual -->
+    <div class="collapse mb-4" id="manualFormPanel">
+      <div class="card card-body">
+        <form id="crearEquipoRivalForm">
+          <div class="mb-3">
+            <select id="idTorneo" name="id_torneo" class="form-select" required>
+              <option value="">Selecciona un torneo</option>
+              {% for torneo in torneos %}
+                <option value="{{ torneo.id_torneo }}">{{ torneo.nombre_torneo }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="nombreEquipoRival" name="nombre_equipo_rival" class="form-control" placeholder="Nombre del equipo rival" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="categoria" name="categoria" class="form-control" placeholder="Categoría" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="director" name="director" class="form-control" placeholder="Nombre del director" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="asistente" name="asistente" class="form-control" placeholder="Nombre del asistente" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="directorCedula" name="director_cedula" class="form-control" placeholder="Cédula del director" required>
+          </div>
+          <div class="mb-3">
+            <input type="text" id="asistenteCedula" name="asistente_cedula" class="form-control" placeholder="Cédula del asistente" required>
+          </div>
+          <button id="crearEquipoRival" type="button" class="btn btn-primary">Crear</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Formulario carga automática -->
+    <div class="collapse mb-4" id="autoUploadPanel">
+      <div class="card card-body">
+        <form id="autoUploadForm" action="{{ url_for('equipo_rival.cargar_automatico_equipo_rival') }}" method="post" enctype="multipart/form-data">
+          <div class="mb-3">
+            <label for="archivo" class="form-label">Archivo PDF o Imagen</label>
+            <input class="form-control" type="file" id="archivo" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Cargar automáticamente</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista de equipos -->
+    <div class="card shadow-lg p-4 rounded-4 card-list">
+      <h2 class="text-center mb-4">Equipos Rivales</h2>
+      {% for equipo_rival in equipos_rivales %}
+        <div class="border p-3 mb-3 rounded bg-white">
+          <div class="mb-2"><strong>Nombre:</strong> {{ equipo_rival.nombre_equipo_rival }}</div>
+          <div class="mb-2"><strong>Categoría:</strong> {{ equipo_rival.categoria }}</div>
+          <div class="mb-2"><strong>Director:</strong> {{ equipo_rival.director }}</div>
+          <div class="mb-2"><strong>Asistente:</strong> {{ equipo_rival.asistente }}</div>
+          <div class="mb-2"><strong>Cédula del Director:</strong> {{ equipo_rival.director_cedula }}</div>
+          <div class="mb-2"><strong>Cédula del Asistente:</strong> {{ equipo_rival.asistente_cedula }}</div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-warning btn-sm editar-equipo" data-nombre="{{ equipo_rival.nombre_equipo_rival }}">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm eliminar-equipo" data-nombre="{{ equipo_rival.nombre_equipo_rival }}">🗑️ Eliminar</button>
+          </div>
+          <!-- Formulario edición inline -->
+          <div class="editar-formulario d-none mt-3" id="formulario-{{ equipo_rival.nombre_equipo_rival }}">
+            <input type="text" id="categoria-{{ equipo_rival.nombre_equipo_rival }}" class="form-control mb-2" value="{{ equipo_rival.categoria }}">
+            <input type="text" id="director-{{ equipo_rival.nombre_equipo_rival }}" class="form-control mb-2" value="{{ equipo_rival.director }}">
+            <input type="text" id="asistente-{{ equipo_rival.nombre_equipo_rival }}" class="form-control mb-2" value="{{ equipo_rival.asistente }}">
+            <input type="text" id="directorCedula-{{ equipo_rival.nombre_equipo_rival }}" class="form-control mb-2" value="{{ equipo_rival.director_cedula }}">
+            <input type="text" id="asistenteCedula-{{ equipo_rival.nombre_equipo_rival }}" class="form-control mb-2" value="{{ equipo_rival.asistente_cedula }}">
+            <button class="btn btn-primary btn-sm guardar-equipo" data-nombre="{{ equipo_rival.nombre_equipo_rival }}">Guardar</button>
+            <button class="btn btn-secondary btn-sm cancelar-edicion" data-nombre="{{ equipo_rival.nombre_equipo_rival }}">Cancelar</button>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-center">No se encontraron equipos rivales</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    // Manejo carga automática con Ajax para mantener /ver
+    document.getElementById('autoUploadForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = this;
+      const formData = new FormData(form);
+      fetch(form.action, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          alert('Error: ' + data.error);
+        } else {
+          // Recargar lista de equipos en /ver
+          window.location.href = "{{ url_for('equipo_rival.equipo_rival_page') }}" + window.location.search;
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        alert('Error al procesar el archivo.');
+      });
+    });
+
+    // CRUD Manual: crear nuevo equipo
+    document.getElementById("crearEquipoRival").addEventListener("click", function () {
+      const idTorneo = document.getElementById("idTorneo").value;
+      const nombreEquipoRival = document.getElementById("nombreEquipoRival").value;
+      const categoria = document.getElementById("categoria").value;
+      const director = document.getElementById("director").value;
+      const asistente = document.getElementById("asistente").value;
+      const directorCedula = document.getElementById("directorCedula").value;
+      const asistenteCedula = document.getElementById("asistenteCedula").value;
+
+      if (!idTorneo.trim() || !nombreEquipoRival.trim() || !categoria.trim() || !director.trim() || !asistente.trim() || !directorCedula.trim() || !asistenteCedula.trim()) {
+        alert("Todos los campos son obligatorios.");
+        return;
+      }
+
+      fetch("/equipo_rival", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id_torneo:idTorneo, nombre_equipo_rival: nombreEquipoRival, categoria: categoria, director: director, asistente: asistente, director_cedula: directorCedula, asistente_cedula: asistenteCedula })
+      })
+      .then(response => response.json())
+      .then(data => {
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Hubo un problema al crear el equipo rival.");
+      });
+    });
+
+    // Editar equipo
+    document.querySelectorAll(".editar-equipo").forEach(button => {
+      button.addEventListener("click", function () {
+        const equipoNombre = this.getAttribute("data-nombre");
+        document.getElementById(`formulario-${equipoNombre}`).classList.toggle("d-none");
+      });
+    });
+
+    // Guardar edición
+    document.querySelectorAll(".guardar-equipo").forEach(button => {
+      button.addEventListener("click", function () {
+        const equipoNombre = this.getAttribute("data-nombre");
+        const categoria = document.getElementById(`categoria-${equipoNombre}`).value;
+        const director = document.getElementById(`director-${equipoNombre}`).value;
+        const asistente = document.getElementById(`asistente-${equipoNombre}`).value;
+        const directorCedula = document.getElementById(`directorCedula-${equipoNombre}`).value;
+        const asistenteCedula = document.getElementById(`asistenteCedula-${equipoNombre}`).value;
+
+        fetch(`/equipo_rival/${encodeURIComponent(equipoNombre)}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ categoria, director, asistente, director_cedula: directorCedula, asistente_cedula: asistenteCedula })
+        })
+        .then(response => response.json())
+        .then(data => window.location.reload())
+        .catch(error => console.error("Error:", error));
+      });
+    });
+
+    // Cancelar edición
+    document.querySelectorAll(".cancelar-edicion").forEach(button => {
+      button.addEventListener("click", function () {
+        const equipoNombre = this.getAttribute("data-nombre");
+        document.getElementById(`formulario-${equipoNombre}`).classList.add("d-none");
+      });
+    });
+
+    // Eliminar equipo
+    document.querySelectorAll(".eliminar-equipo").forEach(button => {
+      button.addEventListener("click", function () {
+        const equipoNombre = this.getAttribute("data-nombre");
+        if (!confirm("¿Estás seguro de que quieres eliminar este equipo rival?")) return;
+
+        fetch(`/equipo_rival/${encodeURIComponent(equipoNombre)}`, { method: "DELETE" })
+          .then(response => {
+            if (response.ok) {
+              window.location.reload();
+            } else {
+              alert("Error al eliminar el equipo rival");
+            }
+          })
+          .catch(error => console.error("Error:", error));
+      });
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

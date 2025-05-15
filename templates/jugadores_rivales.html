@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jugadores Rivales</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .card-container {
+            max-width: 700px;
+            margin: auto;
+        }
+        .card-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="crud-container"
+         data-base-url="{{ url_for('jugadores_rivales.create') }}"
+         data-list-url="{{ url_for('jugadores_rivales.jugadores_rivales_page') }}"
+         class="card-container">
+        <div class="mb-4">
+            <form method="GET" action="{{ url_for('jugadores_rivales.jugadores_rivales_page') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar jugador rival..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </form>
+        </div>
+
+        <div class="text-center mb-3">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+                ➕ Agregar Jugador Rival
+            </button>
+        </div>
+
+        <div class="collapse mb-4" id="formPanel">
+            <div class="card card-body">
+                <form class="form-create">
+                    <div class="mb-3">
+                        <input type="text" name="documento" class="form-control" placeholder="Documento" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="nombre" class="form-control" placeholder="Nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="nombre_equipo_rival" class="form-control" placeholder="Nombre del equipo rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="telefono" class="form-control" placeholder="Teléfono">
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" name="email" class="form-control" placeholder="Correo electrónico">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="eps" class="form-control" placeholder="EPS">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-create">Agregar</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-lg p-4 rounded-4 card-list">
+            <h2 class="text-center mb-4">Jugadores Rivales</h2>
+            {% for jugador in jugadores_rivales_lista %}
+                <div class="border p-3 mb-3 rounded bg-white" data-id="{{ jugador.documento }}">
+                    <div class="mb-2"><strong>Documento:</strong> <span class="item-value documento">{{ jugador.documento }}</span></div>
+                    <div class="mb-2"><strong>Nombre:</strong> <span class="item-value nombre">{{ jugador.nombre }}</span></div>
+                    <div class="mb-2"><strong>Equipo Rival:</strong> <span class="item-value nombre_equipo_rival">{{ jugador.nombre_equipo_rival }}</span></div>
+                    <div class="mb-2"><strong>Teléfono:</strong> <span class="item-value telefono">{{ jugador.telefono }}</span></div>
+                    <div class="mb-2"><strong>Email:</strong> <span class="item-value email">{{ jugador.email }}</span></div>
+                    <div class="mb-2"><strong>EPS:</strong> <span class="item-value eps">{{ jugador.eps }}</span></div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-warning btn-sm btn-edit" data-id="{{ jugador.documento }}">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ jugador.documento }}">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-edit d-none mt-3" data-id="{{ jugador.documento }}">
+                        <input name="nombre" class="form-control mb-2" value="{{ jugador.nombre }}">
+                        <input name="nombre_equipo_rival" class="form-control mb-2" value="{{ jugador.nombre_equipo_rival }}">
+                        <input name="telefono" class="form-control mb-2" value="{{ jugador.telefono }}">
+                        <input name="email" class="form-control mb-2" value="{{ jugador.email }}">
+                        <input name="eps" class="form-control mb-2" value="{{ jugador.eps }}">
+                        <button class="btn btn-sm btn-save" data-id="{{ jugador.documento }}">Guardar</button>
+                        <button class="btn btn-sm btn-cancel" data-id="{{ jugador.documento }}">Cancelar</button>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">No se encontraron jugadores rivales</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/crud_general.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

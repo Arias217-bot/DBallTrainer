@@ -1,0 +1,169 @@
+{% extends './base.html' %}
+{% block title %} Gestión de Videos {% endblock %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="text-center">Mis Videos</h2>
+
+    <!-- Botón para abrir el modal de creación de videos -->
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#crearVideoModal">
+        Nuevo Video
+    </button>
+
+    <!-- Formulario de búsqueda -->
+    <form method="get" class="row g-3 mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" name="q" placeholder="Buscar por nombre..." value="{{ request.args.get('q', '') }}">
+        </div>
+        <div class="col-md-3">
+            <select name="modalidad" class="form-select">
+                <option value="">Todas las modalidades</option>
+                {% for modalidad in modalidades %}
+                <option value="{{ modalidad.id_modalidad }}" {% if request.args.get('modalidad') == modalidad.id_modalidad|string %}selected{% endif %}>{{ modalidad.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="deteccion" class="form-select">
+                <option value="">Todas las detecciones</option>
+                {% for deteccion in detecciones %}
+                <option value="{{ deteccion.id_deteccion }}" {% if request.args.get('deteccion') == deteccion.id_deteccion|string %}selected{% endif %}>{{ deteccion.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+        </div>
+    </form>
+
+
+    <!-- Lista de videos -->
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+    {% for video in videos %}
+        <div class="col">
+            <div class="card h-100">
+                <a href="{{ url_for('videos.detalle_video', documento=documento, nombre=video.nombre.replace(' ', '-').lower()) }}">
+                    <video class="card-img-top" muted autoplay loop>
+                        <source src="{{ video.url }}" type="video/mp4">
+                        Tu navegador no soporta el video.
+                    </video>
+                </a>
+                <div class="card-body">
+                    <h5 class="card-title">{{ video.nombre }}</h5>
+                    <p><strong>Modalidad:</strong> {{ video['modalidad']['nombre'] }}</p>
+                    <p><strong>Detección:</strong> {{ video['deteccion']['nombre'] }}</p>
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-danger btn-delete" data-id="{{ video.id_video }}">Borrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+
+    <!-- Modal para crear video -->
+    <div class="modal fade" id="crearVideoModal" tabindex="-1" aria-labelledby="crearVideoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <form class="form-create" enctype="multipart/form-data">
+        <div class="modal-content">
+            <div class="modal-header">
+            <h5 class="modal-title">Subir Video</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+            <input type="hidden" name="documento" value="{{ documento }}">
+            <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre del Video</label>
+                <input type="text" class="form-control" name="nombre" required>
+            </div>
+            <div class="mb-3">
+                <label for="video_file" class="form-label">Archivo de Video</label>
+                <input type="file" class="form-control" name="video_file" accept="video/*" capture required>
+            </div>
+            <div class="mb-3">
+                <label for="id_modalidad" class="form-label">Modalidad</label>
+                <select name="id_modalidad" class="form-select" required>
+                {% for modalidad in modalidades %}
+                <option value="{{ modalidad.id_modalidad }}">{{ modalidad.nombre }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="id_deteccion" class="form-label">Detección</label>
+                <select name="id_deteccion" class="form-select" required>
+                {% for deteccion in detecciones %}
+                <option value="{{ deteccion.id_deteccion }}">{{ deteccion.nombre }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            </div>
+            <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Subir</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+        </div>
+        </form>
+    </div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Borrar video
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('¿Confirmas que deseas borrar este video?')) return;
+            const id = btn.getAttribute('data-id');
+            try {
+                const res = await fetch(`/videos/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw await res.json();
+                location.reload();
+            } catch(err) {
+                console.error('Error al borrar:', err);
+            }
+        });
+    });
+
+    // Nuevo código para manejar la creación de videos
+    document.querySelector('.form-create').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch('/videos/upload', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Error al subir el video');
+            }
+            
+            const result = await response.json();
+            console.log('Video subido:', result);
+            
+            // Cierra el modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('crearVideoModal'));
+            modal.hide();
+            
+            // Recarga la página para mostrar el nuevo video
+            location.reload();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Ocurrió un error al subir el video');
+        }
+    });
+
+</script>
+{% endblock %}

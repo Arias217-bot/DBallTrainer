@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .card-container {
+            max-width: 700px;
+            margin: auto;
+        }
+        .card-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="crud-container"
+         data-base-url="{{ url_for('mensajes.create') }}"
+         data-list-url="{{ url_for('mensajes.mensajes_page') }}"
+         class="card-container">
+        <div class="mb-4">
+            <form method="GET" action="{{ url_for('mensajes.mensajes_page') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar mensaje..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </form>
+        </div>
+
+        <div class="text-center mb-3">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+                ➕ Crear Nuevo Mensaje
+            </button>
+        </div>
+
+        <div class="collapse mb-4" id="formPanel">
+            <div class="card card-body">
+                <form class="form-create">
+                    <!--
+                    Este campo oculto se añadió para solucionar un problema de validación con el script `crud_general.js`. El script espera que todos los formularios de creación tengan un campo con el `name="nombre"` y que este campo no esté vacío para permitir la creación de un nuevo elemento.
+
+                    La entidad "Mensajes" no tiene un campo "nombre" como tal. Para evitar modificar el script general, hemos añadido este campo oculto con un valor predeterminado ("mensaje"). De esta manera, la validación del script `crud_general.js` se cumple, permitiendo la creación de nuevos mensajes aunque la entidad no tenga un atributo "nombre" visible para el usuario.
+
+                    La clase `hidden` se utiliza para que este campo no sea visible en la interfaz de usuario.
+                    -->
+                    <div class="mb-3 hidden">
+                        <input type="text" name="nombre" class="form-control" value="mensaje">
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="id_equipo" class="form-control" placeholder="ID del equipo" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea name="contenido" class="form-control" placeholder="Contenido del mensaje" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="autor" class="form-control" placeholder="Autor del mensaje">
+                    </div>
+                    <button type="button" class="btn btn-primary btn-create">Crear</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-lg p-4 rounded-4 card-list">
+            <h2 class="text-center mb-4">Mensajes</h2>
+            {% for mensaje in mensajes_lista %}
+                <div class="border p-3 mb-3 rounded bg-white" data-id="{{ mensaje.id_mensaje }}">
+                    <div class="mb-2"><strong>ID Equipo:</strong> <span class="item-value id_equipo">{{ mensaje.id_equipo }}</span></div>
+                    <div class="mb-2"><strong>Contenido:</strong> <span class="item-value contenido">{{ mensaje.contenido }}</span></div>
+                    <div class="mb-2"><strong>Autor:</strong> <span class="item-value autor">{{ mensaje.autor }}</span></div>
+                    <div class="mb-2"><strong>Fecha de Envío:</strong> {{ mensaje.fecha_envio }}</div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-warning btn-sm btn-edit" data-id="{{ mensaje.id_mensaje }}">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ mensaje.id_mensaje }}">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-edit d-none mt-3" data-id="{{ mensaje.id_mensaje }}">
+                        <input type="number" name="id_equipo" class="form-control mb-2" value="{{ mensaje.id_equipo }}">
+                        <textarea name="contenido" class="form-control mb-2" rows="3">{{ mensaje.contenido }}</textarea>
+                        <input type="text" name="autor" class="form-control mb-2" value="{{ mensaje.autor }}">
+                        <button class="btn btn-sm btn-save" data-id="{{ mensaje.id_mensaje }}">Guardar</button>
+                        <button class="btn btn-sm btn-cancel" data-id="{{ mensaje.id_mensaje }}">Cancelar</button>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">No se encontraron mensajes</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/crud_general.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

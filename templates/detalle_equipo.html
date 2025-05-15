@@ -1,0 +1,208 @@
+{% extends './base.html' %}
+{% block title %}Detalles del Equipo{% endblock %}
+
+{% block body %}
+<div class="container mt-4" style="background-color: #f8841c; padding: 20px; border-radius: 10px;">
+    <h2 class="text-center mb-4" style="color: black; font-weight: bold;">{{ equipo.nombre }}</h2>
+
+    <ul class="nav nav-tabs" id="equipoTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="descripcion-tab" data-bs-toggle="tab" data-bs-target="#descripcion" type="button" role="tab">Descripción</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="integrantes-tab" data-bs-toggle="tab" data-bs-target="#integrantes" type="button" role="tab">Integrantes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mensajes-tab" data-bs-toggle="tab" data-bs-target="#mensajes" type="button" role="tab">Mensajes</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="torneos-tab" data-bs-toggle="tab" data-bs-target="#torneos" type="button" role="tab">Torneos</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-4">
+
+        <div class="tab-pane fade show active" id="descripcion" role="tabpanel">
+            <table class="table text-center rounded" style="overflow: hidden;">
+                <thead style="background-color: black; color: white;">
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Categoría Edad</th>
+                        <th>Categoría Sexo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="background-color: white; color: black;">
+                        <td>{{ equipo.descripcion }}</td>
+                        <td>{{ equipo.categoria_edad }}</td>
+                        <td>{{ equipo.categoria_sexo }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="tab-pane fade" id="integrantes" role="tabpanel">
+            <div id="crud-integrantes-container"
+                 data-base-url="{{ url_for('usuario_equipo.create') }}"
+                 data-list-url="{{ url_for('equipo_bp.detalle_equipo', documento=documento, nombre_equipo=equipo.nombre|replace(' ', '-')|lower) }}#integrantes">
+                <div class="mb-3 text-end">
+                    <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCrearIntegrante" aria-expanded="false">➕ Agregar Integrante</button>
+                </div>
+                <div class="collapse mb-4" id="formCrearIntegrante">
+                    <div class="card card-body">
+                        <form class="form-create">
+                            <input type="hidden" name="id_equipo" value="{{ equipo.id_equipo }}">
+                            <div class="mb-2"><input type="text" name="documento" class="form-control" placeholder="Documento" required></div>
+                            <div class="mb-2">
+                                <select name="rol" class="form-select" required>
+                                    {% for rol in roles %}<option value="{{ rol.id_rol }}">{{ rol.nombre }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <select name="posicion" class="form-select" required>
+                                    {% for posicion in posiciones %}<option value="{{ posicion.id_posicion }}">{{ posicion.nombre }}</option>{% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-2"><input type="number" name="numero" class="form-control" placeholder="Número" min="0" required></div>
+                            <button type="button" class="btn btn-primary btn-create">Crear</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card shadow-lg p-3 rounded card-list">
+                    <h4>Lista de Integrantes</h4>
+                    <div class="list-group list-group-flush">
+                        {% for integrante in integrantes %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start border p-3 mb-2 rounded bg-white" data-id="{{ integrante.documento }}">
+                            <div>
+                                <strong><span class="item-value documento">{{ integrante.documento }}</span></strong> (<span class="item-value nombre">{{ integrante.nombre }}</span>)<br>
+                                <small>Rol: <span class="item-value rol">{{ integrante.rol }}</span> | Posición: <span class="item-value posicion">{{ integrante.posicion }}</span> | Nº <span class="item-value numero">{{ integrante.numero }}</span></small>
+                                <span class="d-none item-value id_rol">{{ integrante.id_rol }}</span>
+                                <span class="d-none item-value id_posicion">{{ integrante.id_posicion }}</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 btn-edit" data-id="{{ integrante.id_usuario_equipo }}">✏️</button>
+                                <button class="btn btn-sm btn-danger btn-delete" data-id="{{ integrante.id_usuario_equipo }}">🗑️</button>
+                            </div>
+                            <div class="card mt-2 p-3 d-none form-edit" data-id="{{ integrante.id_usuario_equipo }}">
+                                <div class="mb-2">Documento: <span class="item-value documento">{{ integrante.documento }}</span> (No editable)</div>
+                                <div class="mb-2">
+                                    <label class="form-label">Rol</label>
+                                    <select name="rol" class="form-select">
+                                        {% for rol in roles %}<option value="{{ rol.id_rol }}" {% if rol.id_rol == integrante.id_rol %}selected{% endif %}>{{ rol.nombre }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Posición</label>
+                                    <select name="posicion" class="form-select">
+                                        {% for posicion in posiciones %}<option value="{{ posicion.id_posicion }}" {% if posicion.id_posicion == integrante.id_posicion %}selected{% endif %}>{{ posicion.nombre }}</option>{% endfor %}
+                                    </select>
+                                </div>
+                                <div class="mb-2"><label class="form-label">Número</label><input type="number" name="numero" class="form-control" min="0" value="{{ integrante.numero }}"></div>
+                                <button class="btn btn-primary btn-sm btn-save" data-id="{{ integrante.id_usuario_equipo }}">Guardar</button>
+                                <button class="btn btn-secondary btn-sm btn-cancel" data-id="{{ integrante.id_usuario_equipo }}">Cancelar</button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-center">No hay integrantes</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="mensajes" role="tabpanel">
+            <div id="crud-mensajes-container"
+                 data-base-url="{{ url_for('mensajes.create') }}"
+                 data-list-url="{{ url_for('equipo_bp.detalle_equipo', documento=documento, nombre_equipo=equipo.nombre|replace(' ', '-')|lower) }}#mensajes">
+                <div class="mb-3 text-end">
+                    <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCrearMensaje" aria-expanded="false">➕ Nuevo Mensaje</button>
+                </div>
+                <div class="collapse mb-4" id="formCrearMensaje">
+                    <div class="card card-body">
+                        <form class="form-create">
+                            <input type="hidden" name="id_equipo" value="{{ equipo.id_equipo }}">
+                            <div class="mb-2"><textarea name="contenido" class="form-control" placeholder="Contenido" required></textarea></div>
+                            <div class="mb-2"><input type="text" name="autor" class="form-control" placeholder="Autor" required></div>
+                            <button type="button" class="btn btn-primary btn-create">Crear</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card shadow-lg p-3 rounded card-list">
+                    <h4>Lista de Mensajes</h4>
+                    <div class="list-group list-group-flush">
+                        {% for mensaje in mensajes %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start border p-3 mb-2 rounded bg-white" data-id="{{ mensaje.id_mensaje }}">
+                            <div>
+                                <em><span class="item-value contenido">{{ mensaje.contenido }}</span></em><br>
+                                <small>Autor: <span class="item-value autor">{{ mensaje.autor }}</span></small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 btn-edit" data-id="{{ mensaje.id_mensaje }}">✏️</button>
+                                <button class="btn btn-sm btn-danger btn-delete" data-id="{{ mensaje.id_mensaje }}">🗑️</button>
+                            </div>
+                            <div class="card mt-2 p-3 d-none form-edit" data-id="{{ mensaje.id_mensaje }}">
+                                <div class="mb-2"><label class="form-label">Contenido</label><textarea name="contenido" class="form-control">{{ mensaje.contenido }}</textarea></div>
+                                <div class="mb-2"><label class="form-label">Autor</label><input type="text" name="autor" class="form-control" value="{{ mensaje.autor }}"></div>
+                                <button class="btn btn-primary btn-sm btn-save" data-id="{{ mensaje.id_mensaje }}">Guardar</button>
+                                <button class="btn btn-secondary btn-sm btn-cancel" data-id="{{ mensaje.id_mensaje }}">Cancelar</button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-center">No hay mensajes</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="torneos" role="tabpanel">
+            <div id="crud-torneos-container"
+                 data-base-url="{{ url_for('torneo.create') }}"
+                 data-list-url="{{ url_for('equipo_bp.detalle_equipo', documento=documento, nombre_equipo=equipo.nombre|replace(' ', '-')|lower) }}#torneos">
+                <div class="mb-3 text-end">
+                    <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCrearTorneo" aria-expanded="false">➕ Nuevo Torneo</button>
+                </div>
+                <div class="collapse mb-4" id="formCrearTorneo">
+                    <div class="card card-body">
+                        <form class="form-create">
+                            <input type="hidden" name="id_equipo" value="{{ equipo.id_equipo }}">
+                            <div class="mb-2"><input type="text" name="nombre_torneo" class="form-control" placeholder="Nombre" required></div>
+                            <div class="mb-2"><textarea name="descripcion" class="form-control" placeholder="Descripción"></textarea></div>
+                            <button type="button" class="btn btn-primary btn-create">Crear</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card shadow-lg p-3 rounded card-list">
+                    <h4>Lista de Torneos</h4>
+                    <div class="list-group list-group-flush">
+                        {% for torneo in torneos %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start border p-3 mb-2 rounded bg-white" data-id="{{ torneo.id_torneo }}">
+                            <a href="{{ url_for('torneo.detalle_torneo', nombre_equipo=equipo.nombre|replace(' ', '-')|lower, id_torneo=torneo.id_torneo, nombre_torneo=torneo.nombre_torneo|replace(' ', '-')|lower) }}" class="flex-grow-1">
+                                <strong><span class="item-value nombre_torneo">{{ torneo.nombre_torneo }}</span></strong><br><small><span class="item-value descripcion">{{ torneo.descripcion or 'Sin descripción' }}</span></small>
+                            </a>
+                            <div>
+                                <button class="btn btn-sm btn-warning me-1 btn-edit" data-id="{{ torneo.id_torneo }}">✏️</button>
+                                <button class="btn btn-sm btn-danger btn-delete" data-id="{{ torneo.id_torneo }}">🗑️</button>
+                            </div>
+                            <div class="card mt-2 p-3 d-none form-edit" data-id="{{ torneo.id_torneo }}">
+                                <div class="mb-2"><label class="form-label">Nombre</label><input type="text" name="nombre_torneo" class="form-control" value="{{ torneo.nombre_torneo }}"></div>
+                                <div class="mb-2"><label class="form-label">Descripción</label><textarea name="descripcion" class="form-control">{{ torneo.descripcion }}</textarea></div>
+                                <button class="btn btn-primary btn-sm btn-save" data-id="{{ torneo.id_torneo }}">Guardar</button>
+                                <button class="btn btn-secondary btn-sm btn-cancel" data-id="{{ torneo.id_torneo }}">Cancelar</button>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-center">No hay torneos</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <script src="{{ url_for('static', filename='js/crud_general_detalle.js') }}"></script>
+
+{% endblock %}

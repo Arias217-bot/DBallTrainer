@@ -1,0 +1,861 @@
+{% extends './base.html' %}
+{% block title %} Jugadas del Partido {% endblock %}
+
+{% block head %}
+<style>
+    /* Estilos previos (mantener igual) */
+    .cancha-container {
+        position: relative;
+        width: 100%;
+        padding-bottom: 75%;
+        background-color: #8bc34a;
+        border: 3px solid #333;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    .cancha {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+    }
+    
+    .red-line {
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background-color: red;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    
+    .zona {
+        position: absolute;
+        width: 33.33%;
+        height: 25%;
+        border: 1px dashed rgba(255,255,255,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+    
+    /* Zonas (mantener igual) */
+    .zona-1 { left: 0%; bottom: 0%; }
+    .zona-2 { left: 33.33%; bottom: 0%; }
+    .zona-3 { left: 66.66%; bottom: 0%; }
+    .zona-4 { left: 0%; bottom: 25%; }
+    .zona-5 { left: 33.33%; bottom: 25%; }
+    .zona-6 { left: 66.66%; bottom: 25%; }
+    .zona-7 { left: 0%; top: 0%; }
+    .zona-8 { left: 33.33%; top: 0%; }
+    .zona-9 { left: 66.66%; top: 0%; }
+    .zona-10 { left: 0%; top: 25%; }
+    .zona-11 { left: 33.33%; top: 25%; }
+    .zona-12 { left: 66.66%; top: 25%; }
+    
+    .jugador-marker {
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        background-color: #ff5722;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 0.7rem;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .rival-marker {
+        background-color: #2196F3;
+    }
+    
+    .jugada-linea {
+        position: absolute;
+        background-color: rgba(255, 255, 255, 0.7);
+        height: 2px;
+        transform-origin: left center;
+        z-index: 5;
+    }
+    
+    .accion-marker {
+        position: absolute;
+        font-size: 1.2rem;
+        font-weight: bold;
+        z-index: 15;
+        transform: translate(-50%, -50%);
+    }
+    
+    .excelente { color: #4CAF50; }
+    .buena { color: #8BC34A; }
+    .normal { color: #FFC107; }
+    .mala { color: #FF9800; }
+    .error { color: #F44336; }
+    
+    .timeline {
+        height: 4px;
+        background-color: #ddd;
+        margin: 10px 0;
+        position: relative;
+    }
+    
+    .progress {
+        height: 100%;
+        background-color: #4CAF50;
+        width: 0%;
+    }
+    
+    .play-controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    /* Estilos para el formulario activo */
+    .compact-form .form-control, .compact-form .form-select {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .compact-form label {
+        margin-bottom: 0.2rem;
+        font-size: 0.875rem;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-3">
+    <h2 class="text-center mb-3">Jugadas: {{ partido.nombre_partido }}</h2>
+
+    <ul class="nav nav-tabs mb-3" id="jugadasTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="registro-tab" data-bs-toggle="tab" data-bs-target="#registro" type="button" role="tab">Registro</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="visualizacion-tab" data-bs-toggle="tab" data-bs-target="#visualizacion" type="button" role="tab">Visualización</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="historial-tab" data-bs-toggle="tab" data-bs-target="#historial" type="button" role="tab">Historial</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="estadisticas-tab" data-bs-toggle="tab" data-bs-target="#estadisticas" type="button" role="tab">Estadísticas</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="jugadasTabContent">
+        <!-- Pestaña de Registro -->
+        <div class="tab-pane fade show active" id="registro" role="tabpanel">
+            <div class="card mb-3">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span>Nueva Jugada</span>
+                    <button class="btn btn-sm btn-outline-light" type="button" data-bs-toggle="collapse" data-bs-target="#formCollapse">
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                </div>
+                <div class="collapse show" id="formCollapse">
+                    <div class="card-body">
+                        <form id="jugadaForm" class="compact-form">
+                            <input type="hidden" name="nombre_partido" value="{{ partido.nombre_partido }}">
+                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Jugador</label>
+                                    <input type="number" class="form-control form-control-sm jugador-input" min="1" max="99" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Zona</label>
+                                    <select class="form-select form-select-sm zona-input">
+                                        <option value="z1">Zona 1 (Defensa derecha)</option>
+                                        <option value="z2">Zona 2 (Defensa centro)</option>
+                                        <option value="z3">Zona 3 (Defensa izquierda)</option>
+                                        <option value="z4">Zona 4 (Ataque izquierda)</option>
+                                        <option value="z5">Zona 5 (Ataque centro)</option>
+                                        <option value="z6">Zona 6 (Ataque derecha)</option>
+                                        <option value="z7">Zona 7 (Rival derecha)</option>
+                                        <option value="z8">Zona 8 (Rival centro)</option>
+                                        <option value="z9">Zona 9 (Rival izquierda)</option>
+                                        <option value="z10">Zona 10 (Rival fondo izquierda)</option>
+                                        <option value="z11">Zona 11 (Rival fondo centro)</option>
+                                        <option value="z12">Zona 12 (Rival fondo derecha)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Acción</label>
+                                    <select class="form-select form-select-sm accion-input">
+                                        <option value="++">Excelente (++)</option>
+                                        <option value="+">Buena (+)</option>
+                                        <option value="=">Normal (=)</option>
+                                        <option value="-">Mala (-)</option>
+                                        <option value="--">Error (--)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-sm btn-primary w-100 agregar-paso">
+                                        <i class="bi bi-plus"></i> Agregar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-2">
+                                <label class="form-label">Secuencia Generada</label>
+                                <textarea class="form-control form-control-sm secuencia-input" id="secuencia_jugada" name="secuencia_jugada" rows="2" readonly required></textarea>
+                            </div>
+                            
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-6">
+                                    <label class="form-label">Tiempo Inicio</label>
+                                    <input type="time" class="form-control form-control-sm" name="tiempo_inicio" step="1">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Tiempo Fin</label>
+                                    <input type="time" class="form-control form-control-sm" name="tiempo_fin" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="reset" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Limpiar
+                                </button>
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="bi bi-save"></i> Guardar Jugada
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña de Visualización -->
+        <div class="tab-pane fade" id="visualizacion" role="tabpanel">
+            <div class="card">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span>Representación Gráfica</span>
+                    <div class="d-flex align-items-center">
+                        <span id="currentStep" class="me-2 small">0/0</span>
+                        <div class="play-controls">
+                            <button id="reiniciarJugada" class="btn btn-sm btn-outline-light" title="Reiniciar">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button id="retrocederJugada" class="btn btn-sm btn-outline-light" title="Retroceder">
+                                <i class="bi bi-skip-backward-fill"></i>
+                            </button>
+                            <button id="reproducirJugada" class="btn btn-sm btn-outline-light" title="Reproducir">
+                                <i class="bi bi-play-fill"></i>
+                            </button>
+                            <button id="pausarJugada" class="btn btn-sm btn-outline-light" title="Pausar">
+                                <i class="bi bi-pause-fill"></i>
+                            </button>
+                            <button id="avanzarJugada" class="btn btn-sm btn-outline-light" title="Avanzar">
+                                <i class="bi bi-skip-forward-fill"></i>
+                            </button>
+                        </div>
+                        <!-- El botón "Reproducir Todas" se agregará automáticamente aquí -->
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="cancha-container">
+                        <div class="cancha" id="cancha">
+                            <div class="red-line"></div>
+                            <!-- Las zonas se generan dinámicamente -->
+                        </div>
+                    </div>
+                    <div class="timeline">
+                        <div class="progress" id="jugadaProgress"></div>
+                    </div>
+                    <div class="mt-2" id="jugadaInfo">
+                        <p class="text-muted small">Selecciona una jugada del historial para visualizarla</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña de Historial -->
+        <div class="tab-pane fade" id="historial" role="tabpanel">
+            <div class="card">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <span>Historial de Jugadas</span>
+                    <input type="text" id="filtroJugadas" class="form-control form-control-sm w-auto" placeholder="Filtrar...">
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th width="50%">Secuencia</th>
+                                    <th width="20%">Tiempo</th>
+                                    <th width="20%">Duración</th>
+                                    <th width="10%"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="listaJugadas">
+                                {% for jugada in jugadas %}
+                                <tr class="jugada-item" data-id="{{ jugada.id_jugada }}" 
+                                    data-secuencia="{{ jugada.secuencia_jugada }}"
+                                    data-procesada='{{ jugada.datos_procesados|tojson|safe }}'>
+                                    <td class="text-monospace small">{{ jugada.secuencia_jugada|truncate(40) }}</td>
+                                    <td class="small">{{ jugada.tiempo_inicio }} - {{ jugada.tiempo_fin }}</td>
+                                    <td class="small">
+                                        {% if jugada.tiempo_inicio and jugada.tiempo_fin %}
+                                            {{ calcular_duracion(jugada.tiempo_inicio, jugada.tiempo_fin) }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-danger borrar-jugada py-0 px-1">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- En el div de tab-content, agregar el nuevo panel -->
+        <div class="tab-pane fade" id="estadisticas" role="tabpanel">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    Informes Estadísticos
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Rendimiento por Jugador</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm" id="tabla-rendimiento">
+                                    <thead>
+                                        <tr>
+                                            <th>Jugador</th>
+                                            <th>Excelente</th>
+                                            <th>Efectivo</th>
+                                            <th>Error</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cuerpo-rendimiento">
+                                        <!-- Datos se llenarán con JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Distribución de Zonas de Ataque</h5>
+                            <canvas id="grafico-zonas" height="250"></canvas>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Efectividad de Ataques</h5>
+                            <canvas id="grafico-efectividad" height="250"></canvas>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Comparativa de Equipos</h5>
+                            <canvas id="grafico-equipos" height="250"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Mapa de zonas de voleibol (nuestro equipo abajo, rival arriba)
+const zonas = {
+    'z1': { x: 16.66, y: 87.5, nombre: 'Z1', clase: 'zona-1' },
+    'z2': { x: 50, y: 87.5, nombre: 'Z2', clase: 'zona-2' },
+    'z3': { x: 83.33, y: 87.5, nombre: 'Z3', clase: 'zona-3' },
+    'z4': { x: 16.66, y: 62.5, nombre: 'Z4', clase: 'zona-4' },
+    'z5': { x: 50, y: 62.5, nombre: 'Z5', clase: 'zona-5' },
+    'z6': { x: 83.33, y: 62.5, nombre: 'Z6', clase: 'zona-6' },
+    'z7': { x: 16.66, y: 12.5, nombre: 'Z7', clase: 'zona-7' },
+    'z8': { x: 50, y: 12.5, nombre: 'Z8', clase: 'zona-8' },
+    'z9': { x: 83.33, y: 12.5, nombre: 'Z9', clase: 'zona-9' },
+    'z10': { x: 16.66, y: 37.5, nombre: 'Z10', clase: 'zona-10' },
+    'z11': { x: 50, y: 37.5, nombre: 'Z11', clase: 'zona-11' },
+    'z12': { x: 83.33, y: 37.5, nombre: 'Z12', clase: 'zona-12' }
+};
+
+// Variables de estado para la reproducción
+let jugadaActual = null;
+let pasoActual = 0;
+let intervaloReproduccion = null;
+let pasosProcesados = [];
+
+// Variables para la reproducción automática
+let reproduccionAutomaticaActiva = false;
+let indiceJugadaActual = 0;
+let intervaloReproduccionAutomatica = null;
+let todasLasJugadas = [];
+
+// Inicialización del campo con todas las zonas
+function inicializarCancha() {
+    const cancha = document.getElementById('cancha');
+    cancha.innerHTML = '<div class="red-line"></div>';
+    
+    Object.entries(zonas).forEach(([key, zona]) => {
+        const divZona = document.createElement('div');
+        divZona.className = `zona ${zona.clase}`;
+        divZona.textContent = zona.nombre;
+        cancha.appendChild(divZona);
+    });
+}
+
+// Dibujar línea entre dos puntos
+function dibujarLinea(inicio, fin, clase = '') {
+    const linea = document.createElement('div');
+    linea.className = `jugada-linea ${clase}`;
+    
+    const dx = fin.x - inicio.x;
+    const dy = fin.y - inicio.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    
+    Object.assign(linea.style, {
+        width: `${length}%`,
+        left: `${inicio.x}%`,
+        top: `${inicio.y}%`,
+        transform: `rotate(${angle}deg)`
+    });
+    
+    document.getElementById('cancha').appendChild(linea);
+    return linea;
+}
+
+// Mostrar un marcador de acción (saque, remate, etc.)
+function mostrarAccion(posicion, accion) {
+    const marker = document.createElement('div');
+    marker.className = 'accion-marker';
+    marker.style.left = `${posicion.x}%`;
+    marker.style.top = `${posicion.y}%`;
+    
+    let simbolo = '';
+    let clase = '';
+    
+    switch(accion) {
+        case '++': 
+            simbolo = '++'; 
+            clase = 'excelente';
+            break;
+        case '+': 
+            simbolo = '+'; 
+            clase = 'buena';
+            break;
+        case '=': 
+            simbolo = '='; 
+            clase = 'normal';
+            break;
+        case '-': 
+            simbolo = '-'; 
+            clase = 'mala';
+            break;
+        case '--': 
+            simbolo = '--'; 
+            clase = 'error';
+            break;
+        default: 
+            simbolo = accion;
+    }
+    
+    marker.textContent = simbolo;
+    marker.classList.add(clase);
+    document.getElementById('cancha').appendChild(marker);
+    return marker;
+}
+
+// Cargar una jugada para visualización
+function cargarJugada(secuencia, datosProcesados) {
+    // Limpiar cancha
+    const cancha = document.getElementById('cancha');
+    cancha.innerHTML = '<div class="red-line"></div>';
+    inicializarCancha();
+    
+    // Resetear estado de reproducción
+    jugadaActual = null;
+    pasoActual = 0;
+    pasosProcesados = [];
+    clearInterval(intervaloReproduccion);
+    
+    // Actualizar controles
+    document.getElementById('currentStep').textContent = '0/0';
+    document.getElementById('jugadaProgress').style.width = '0%';
+    
+    if (!secuencia) {
+        document.getElementById('jugadaInfo').innerHTML = '<p class="text-muted small">Selecciona una jugada del historial para visualizarla</p>';
+        return;
+    }
+    
+    // Intentar usar datos procesados si están disponibles
+    if (datosProcesados && datosProcesados.pasos) {
+        pasosProcesados = datosProcesados.pasos;
+        jugadaActual = secuencia;
+        document.getElementById('currentStep').textContent = `0/${pasosProcesados.length}`;
+        document.getElementById('jugadaInfo').innerHTML = `
+            <p class="mb-1"><strong>Jugada:</strong> ${secuencia}</p>
+            <p class="small text-muted">${pasosProcesados.length} pasos registrados</p>
+        `;
+        mostrarPaso(0);
+        return;
+    }
+    
+    // Procesamiento alternativo si no hay datos procesados
+    const pasos = secuencia.split(',');
+    let pasosValidos = [];
+    
+    pasos.forEach((paso, index) => {
+        const match = paso.match(/j(\d+)(z\d+|[\+\-\=]{1,2})/);
+        if (!match) return;
+        
+        const jugador = match[1];
+        const accion = match[2];
+        
+        if (accion.startsWith('z') && zonas[accion]) {
+            pasosValidos.push({
+                tipo: 'zona',
+                jugador: jugador,
+                zona: accion,
+                posicion: zonas[accion]
+            });
+        } else if (['++', '+', '=', '-', '--'].includes(accion)) {
+            pasosValidos.push({
+                tipo: 'accion',
+                jugador: jugador,
+                accion: accion
+            });
+        }
+    });
+    
+    pasosProcesados = pasosValidos;
+    jugadaActual = secuencia;
+    document.getElementById('currentStep').textContent = `0/${pasosProcesados.length}`;
+    document.getElementById('jugadaInfo').innerHTML = `
+        <p class="mb-1"><strong>Jugada:</strong> ${secuencia}</p>
+        <p class="small text-muted">${pasosProcesados.length} pasos registrados</p>
+    `;
+    mostrarPaso(0);
+}
+
+// Mostrar un paso específico de la jugada
+function mostrarPaso(indice) {
+    if (!jugadaActual || indice < 0 || indice >= pasosProcesados.length) return;
+    
+    // Limpiar marcadores anteriores (excepto las zonas)
+    document.querySelectorAll('.jugador-marker, .jugada-linea, .accion-marker').forEach(el => el.remove());
+    
+    let prevPos = null;
+    
+    // Mostrar todos los pasos hasta el actual
+    for (let i = 0; i <= indice; i++) {
+        const paso = pasosProcesados[i];
+        
+        if (paso.tipo === 'zona') {
+            const marker = document.createElement('div');
+            marker.className = `jugador-marker ${paso.zona.startsWith('z7') ? 'rival-marker' : ''}`;
+            marker.style.left = `${paso.posicion.x}%`;
+            marker.style.top = `${paso.posicion.y}%`;
+            marker.style.width = '60px';
+            marker.style.height = '60px';
+            marker.style.fontSize = '1.2rem';
+            marker.textContent = paso.jugador;
+            document.getElementById('cancha').appendChild(marker);
+            
+            if (prevPos) {
+                dibujarLinea(prevPos, paso.posicion, i === indice ? 'actual' : '');
+            }
+            prevPos = paso.posicion;
+        } else if (paso.tipo === 'accion' && prevPos) {
+            mostrarAccion(prevPos, paso.accion);
+        }
+    }
+    
+    pasoActual = indice;
+    document.getElementById('currentStep').textContent = `${pasoActual + 1}/${pasosProcesados.length}`;
+    document.getElementById('jugadaProgress').style.width = `${(pasoActual + 1) / pasosProcesados.length * 100}%`;
+}
+
+// Reproducir la jugada automáticamente
+function reproducirJugada() {
+    if (!jugadaActual || pasosProcesados.length === 0) return;
+    pausarJugada();
+    
+    if (pasoActual >= pasosProcesados.length - 1 && reproduccionAutomaticaActiva) {
+        clearInterval(intervaloReproduccion);
+        indiceJugadaActual++;
+        reproducirSiguienteJugadaAutomatica();
+        return;
+    }
+    
+    if (pasoActual >= pasosProcesados.length - 1) {
+        pasoActual = -1;
+    }
+    
+    intervaloReproduccion = setInterval(() => {
+        pasoActual++;
+        mostrarPaso(pasoActual);
+        
+        if (pasoActual >= pasosProcesados.length - 1) {
+            if (reproduccionAutomaticaActiva) {
+                clearInterval(intervaloReproduccion);
+                indiceJugadaActual++;
+                reproducirSiguienteJugadaAutomatica();
+            } else {
+                pausarJugada();
+            }
+        }
+    }, 1000);
+}
+
+function pausarJugada() {
+    clearInterval(intervaloReproduccion);
+    intervaloReproduccion = null;
+    if (reproduccionAutomaticaActiva) {
+        clearTimeout(intervaloReproduccionAutomatica);
+    }
+}
+
+function prepararReproduccionAutomatica() {
+    todasLasJugadas = Array.from(document.querySelectorAll('.jugada-item'));
+    indiceJugadaActual = 0;
+    reproduccionAutomaticaActiva = true;
+    if (todasLasJugadas.length > 0) {
+        reproducirSiguienteJugadaAutomatica();
+    }
+}
+
+function reproducirSiguienteJugadaAutomatica() {
+    if (indiceJugadaActual >= todasLasJugadas.length) {
+        finalizarReproduccionAutomatica();
+        return;
+    }
+    
+    const jugada = todasLasJugadas[indiceJugadaActual];
+    todasLasJugadas.forEach(j => j.classList.remove('table-primary'));
+    jugada.classList.add('table-primary');
+    jugada.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    cargarJugada(jugada.dataset.secuencia, jugada.dataset.procesada ? JSON.parse(jugada.dataset.procesada) : null);
+    setTimeout(reproducirJugada, 500);
+}
+
+function finalizarReproduccionAutomatica() {
+    clearTimeout(intervaloReproduccionAutomatica);
+    reproduccionAutomaticaActiva = false;
+    todasLasJugadas.forEach(j => j.classList.remove('table-primary'));
+    document.getElementById('reproducirTodasBtn').innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
+}
+
+function toggleReproduccionAutomatica() {
+    const boton = document.getElementById('reproducirTodasBtn');
+    if (reproduccionAutomaticaActiva) {
+        finalizarReproduccionAutomatica();
+        boton.innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
+    } else {
+        prepararReproduccionAutomatica();
+        boton.innerHTML = '<i class="bi bi-stop-fill"></i> Detener Reproducción';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarCancha();
+
+    // Formulario interactivo
+    document.querySelector('.agregar-paso').addEventListener('click', function() {
+        const jugador = document.querySelector('.jugador-input').value;
+        const zona = document.querySelector('.zona-input').value;
+        const accion = document.querySelector('.accion-input').value;
+        
+        if (!jugador) {
+            alert('Por favor ingresa un número de jugador');
+            return;
+        }
+        
+        const secuencia = document.getElementById('secuencia_jugada');
+        const current = secuencia.value ? secuencia.value.split(',') : [];
+        current.push(`j${jugador}${zona}`);
+        if (!zona.startsWith('z7') && !zona.startsWith('z8') && !zona.startsWith('z9') && 
+            !zona.startsWith('z10') && !zona.startsWith('z11') && !zona.startsWith('z12')) {
+            current.push(`j${jugador}${accion}`);
+        }
+        secuencia.value = current.join(',');
+    });
+
+    document.getElementById('jugadaForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch('/jugadas/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.fromEntries(new FormData(this)))
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar la jugada');
+        });
+    });
+
+    document.querySelectorAll('.jugada-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            if (e.target.classList.contains('borrar-jugada')) return;
+            cargarJugada(this.dataset.secuencia, this.dataset.procesada ? JSON.parse(this.dataset.procesada) : null);
+            bootstrap.Tab.getInstance(document.querySelector('#visualizacion-tab')).show();
+        });
+        item.querySelector('.borrar-jugada').addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (confirm('¿Estás seguro de que deseas borrar esta jugada?')) {
+                fetch(`/jugadas/${this.closest('.jugada-item').dataset.id}`, { method: 'DELETE' })
+                .then(response => {
+                    if (response.ok) location.reload(); else alert('Error al borrar la jugada');
+                })
+                .catch(err => { console.error('Error:', err); alert('Error al borrar la jugada'); });
+            }
+        });
+    });
+
+    document.getElementById('filtroJugadas').addEventListener('input', function() {
+        const filtro = this.value.toLowerCase();
+        document.querySelectorAll('.jugada-item').forEach(item => {
+            item.style.display = item.textContent.toLowerCase().includes(filtro) ? '' : 'none';
+        });
+    });
+
+    // Controles de reproducción
+    document.getElementById('reproducirJugada').addEventListener('click', reproducirJugada);
+    document.getElementById('pausarJugada').addEventListener('click', pausarJugada);
+    document.getElementById('reiniciarJugada').addEventListener('click', () => { pasoActual = -1; mostrarPaso(0); });
+    document.getElementById('avanzarJugada').addEventListener('click', () => { if (pasoActual < pasosProcesados.length - 1) mostrarPaso(pasoActual + 1); });
+    document.getElementById('retrocederJugada').addEventListener('click', () => { if (pasoActual > 0) mostrarPaso(pasoActual - 1); });
+
+    // Botón para reproducir todas las jugadas
+    const reproducirTodasBtn = document.createElement('button');
+    reproducirTodasBtn.id = 'reproducirTodasBtn';
+    reproducirTodasBtn.className = 'btn btn-sm btn-outline-light ms-2';
+    reproducirTodasBtn.innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
+    reproducirTodasBtn.addEventListener('click', toggleReproduccionAutomatica);
+    document.querySelector('#visualizacion .card-header').appendChild(reproducirTodasBtn);
+
+    document.getElementById('estadisticas-tab').addEventListener('click', function() {
+    // Obtener el nombre del partido de la URL o de otro lugar seguro
+    const nombrePartido = obtenerNombrePartidoActual();
+    if (nombrePartido) {
+        cargarEstadisticas(nombrePartido);
+    } else {
+        console.error('No se pudo determinar el partido actual');
+    }
+});
+
+// Función auxiliar para obtener el nombre del partido
+function obtenerNombrePartidoActual() {
+    // Opción 1: Si tienes el partido en el contexto de la plantilla
+    try {
+        return "{{ partido.nombre_partido }}";  // Para Jinja2
+        // O return partido.nombre_partido;  // Si está en el contexto JS
+    } catch (e) {}
+    
+    // Opción 2: Extraer de la URL
+    const path = window.location.pathname.split('/');
+    if (path.length >= 3) {
+        return decodeURIComponent(path[path.length - 1]).replace('-', ' ');
+    }
+    
+    // Opción 3: Usar un selector del DOM si está visible en la página
+    const titulo = document.querySelector('h2.text-center');
+    if (titulo) {
+        return titulo.textContent.replace('Jugadas: ', '');
+    }
+    
+    return null;
+}
+});
+
+// Estadísticas: carga y visualización
+function cargarEstadisticas(nombrePartido) {
+    fetch(`/estadisticas/${encodeURIComponent(nombrePartido)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) { alert(data.error); return; }
+            mostrarRendimientoJugadores(data.rendimiento_jugadores);
+            mostrarDistribucionZonas(data.distribucion_zonas);
+            mostrarEfectividadAtaques(data.efectividad_ataques);
+            mostrarComparativaEquipos(data.comparativa_equipos);
+        })
+        .catch(error => {
+            console.error('Error al cargar estadísticas:', error);
+            alert('Error al cargar estadísticas');
+        });
+}
+
+function mostrarRendimientoJugadores(datos) {
+    const cuerpoTabla = document.getElementById('cuerpo-rendimiento');
+    cuerpoTabla.innerHTML = '';
+    for (const [jugador, stats] of Object.entries(datos)) {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>Jugador ${jugador}</td>
+            <td>${stats.porcentaje_excelente?.toFixed(1) || 0}%</td>
+            <td>${stats.porcentaje_efectivo?.toFixed(1) || 0}%</td>
+            <td>${stats.porcentaje_error?.toFixed(1) || 0}%</td>
+            <td>${stats.total_acciones}</td>
+        `;
+        cuerpoTabla.appendChild(fila);
+    }
+}
+
+function mostrarDistribucionZonas(datos) {
+    const ctx = document.getElementById('grafico-zonas').getContext('2d');
+    if (window.graficoZonas) window.graficoZonas.destroy();
+    const zonas = Object.keys(datos).sort();
+    const valores = zonas.map(z => datos[z]);
+    window.graficoZonas = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: zonas.map(z => `Zona ${z}`),
+            datasets: [{ label: 'Ataques por zona', data: valores, backgroundColor: 'rgba(54, 162, 235, 0.7)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1 }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'Cantidad de ataques' } } } }
+    });
+}
+
+function mostrarEfectividadAtaques(datos) {
+    const ctx = document.getElementById('grafico-efectividad').getContext('2d');
+    if (window.graficoEfectividad) window.graficoEfectividad.destroy();
+    window.graficoEfectividad = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: ['Éxitosos', 'Normales', 'Fallados'], datasets: [{ data: [datos.exitosos||0, (datos.total-datos.exitosos-datos.fallados)||0, datos.fallados||0], backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(255, 99, 132, 0.7)'], borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)'], borderWidth: 1 }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom'}, title: { display: true, text: `Efectividad: ${datos.porcentaje_exitoso?.toFixed(1)||0}%`} } }
+    });
+}
+
+function mostrarComparativaEquipos(datos) {
+    const ctx = document.getElementById('grafico-equipos').getContext('2d');
+    if (window.graficoEquipos) window.graficoEquipos.destroy();
+    window.graficoEquipos = new Chart(ctx, {
+        type: 'pie',
+        data: { labels: ['Nuestro equipo','Equipo rival'], datasets: [{ data: [datos.nuestro||0, datos.rival||0], backgroundColor: ['rgba(54, 162, 235, 0.7)','rgba(255, 99, 132, 0.7)'], borderColor: ['rgba(54, 162, 235, 1)','rgba(255, 99, 132, 1)'], borderWidth: 1 }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom'}, title: { display: true, text: 'Comparativa de efectividad' } } }
+    });
+}
+
+</script>
+
+{% endblock %}

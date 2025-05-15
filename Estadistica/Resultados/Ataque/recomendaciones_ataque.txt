@@ -1,0 +1,5 @@
+- Diferencia media entre codos: 39.42° (Recomendado: <= 15° - a mejorar).
+- Diferencia media en velocidad angular de codos: 0.00 rad/s (Recomendado: <= 1.0 rad/s - buena).
+- Porcentaje de ataques válidos: 100.00% (Objetivo: >= 85% - alto).
+- Porcentaje de contactos válidos: 0.00% (Objetivo: >= 90% - bajo).
+- Nivel promedio de simetría: 0.34 (Ideal: cercano a 1 - a mejorar).

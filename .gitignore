@@ -1,83 +1,58 @@
-# === Entornos virtuales y configuración de entorno ===
-venv/
-.env
-*.env
-
-# === Archivos de caché de Python ===
+# Byte-compiled / cache
 __pycache__/
 *.py[cod]
-*.pyc
-*.pyo
-*.so
+*$py.class
 
-# === Configuración del editor ===
-.vscode/
+# Entornos virtuales
+.venv/
+env/
+venv/
 
-# === Logs y bases de datos locales ===
+# Configuración del entorno
+.env
+
+# Archivos de logs
 *.log
-*.tmp
-*.bak
-*.swp
-*.sqlite3
-db.sqlite3
+logs/
 
-# === Archivos de dependencias ===
-pip-log.txt
-pip-delete-this-directory.txt
-
-# === Archivos temporales y del sistema operativo ===
-*.DS_Store
+# Archivos del sistema
+.DS_Store
 Thumbs.db
 
-# === Archivos multimedia ===
-*.mp4
+# Archivos de compilación
+*.so
+*.o
+*.out
+*.a
+*.exe
 
-# === Ignorar todo por defecto ===
-*
+# Archivos temporales
+*.tmp
+*.swp
+*.bak
 
-# === No ignorar archivos principales del proyecto ===
-!main.py
-!multi_person_detector.py
-!integration.py
-!app.py
-!requirements.txt
-!README.md
-!.gitignore
+# Archivos de bases de datos
+*.sqlite
+*.db
 
-# === No ignorar carpetas principales del proyecto ===
-!detecciones/
-!evaluaciones/
-!fonts/
-!routes/
-!Salidas/
-!models/
-!utils/
-!Estadistica/
+# Archivos de testing
+.coverage
+.cache
+pytest_cache/
+htmlcov/
 
-# === Ignorar el contenido dentro de las carpetas, excepto archivos específicos ===
-detecciones/*
-evaluaciones/*
-fonts/*
-Salidas/*
-models/*
+# VS Code
+.vscode/
 
-# === No ignorar archivos específicos dentro de carpetas ===
-!detecciones/**/*.py
-!evaluaciones/**/*.py
-!fonts/**/*.ttf
+# vcpkg
+vcpkg/
 
-# === Archivos generados en salidas ===
-Salidas/*.csv
-Salidas/*.avi
-Salidas/*.mp4
-Salidas/*.json
-
-# === Archivos estáticos subidos y procesados ===
+# Carpetas ignoradas pero conservadas
 static/uploads/*
 !static/uploads/.gitkeep
+
 static/processed/*
 !static/processed/.gitkeep
 
-# === Archivos de la carpeta Videos ===
 Videos/*
 !Videos/.gitkeep

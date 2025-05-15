@@ -1,0 +1,473 @@
+{% extends './base.html' %}
+{% block title %} Detalle del Torneo {% endblock %}
+
+{% block body %}
+<div class="container mt-4" style="background-color: #f8841c; padding: 20px; border-radius: 10px;">
+    <h2 class="text-center mb-4" style="color: black; font-weight: bold;">
+        {{ equipo.nombre }} &mdash; {{ torneo.nombre_torneo }}
+    </h2>
+
+    <ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="partidos-tab" data-bs-toggle="tab" data-bs-target="#partidos" type="button" role="tab" aria-controls="partidos" aria-selected="true">Partidos</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="rivales-tab" data-bs-toggle="tab" data-bs-target="#rivales" type="button" role="tab" aria-controls="rivales" aria-selected="false">Equipos Rivales</button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="partidos" role="tabpanel" aria-labelledby="partidos-tab">
+            <div class="d-flex justify-content-between mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearPartidoModal">Nuevo Partido</button>
+                <button class="btn btn-danger" id="borrarPartidosSeleccionados">Borrar seleccionados</button>
+            </div>
+
+            <form id="partidosForm">
+                <table class="table text-center" style="border-radius: 10px; overflow: hidden;">
+                    <thead style="background-color: black; color: white;">
+                        <tr>
+                            <th><input type="checkbox" id="selectAllPartidos"></th>
+                            <th>Nombre Partido</th>
+                            <th>Equipo Rival</th>
+                            <th>Fecha</th>
+                            <th>Lugar</th>
+                            <th>Marcador Local</th>
+                            <th>Marcador Rival</th>
+                            <th>Video</th>
+                            <th>Observaciones</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for partido in partidos %}
+                        <tr style="background-color: white; color: black;">
+                            <td><input type="checkbox" name="partidosSeleccionados" value="{{ partido.nombre_partido }}"></td>
+                            <td>
+                                <a href="{{ url_for('partido.detalle_partido', nombre_torneo=torneo.nombre_torneo|replace(' ', '-'), nombre_partido=partido.nombre_partido|replace(' ', '-')) }}">
+                                    {{ partido.nombre_partido }}
+                                </a>
+                            </td>
+                            <td>{{ partido.nombre_equipo_rival }}</td>
+                            <td>{{ partido.fecha }}</td>
+                            <td>{{ partido.lugar or '---' }}</td>
+                            <td>{{ partido.marcador_local }}</td>
+                            <td>{{ partido.marcador_rival }}</td>
+                            <td>
+                                {% if partido.video_url %}
+                                    <a href="{{ partido.video_url }}" target="_blank">Ver Video</a>
+                                {% else %}
+                                    ---
+                                {% endif %}
+                            </td>
+                            <td>{{ partido.observaciones or '---' }}</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm editarPartido" data-nombre="{{ partido.nombre_partido }}">Editar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+
+        <div class="tab-pane fade" id="rivales" role="tabpanel" aria-labelledby="rivales-tab">
+            <div class="d-flex justify-content-between mb-3">
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearRivalModal">Nuevo Rival</button>
+                <button class="btn btn-info text-white" type="button" data-bs-toggle="collapse" data-bs-target="#autoUploadPanel" aria-expanded="false" aria-controls="autoUploadPanel">
+                    📁 Carga Automática
+                </button>
+                <button class="btn btn-danger" id="borrarRivalesSeleccionados">Borrar seleccionados</button>
+            </div>
+            <form id="rivalesForm">
+                <table class="table text-center" style="border-radius: 10px; overflow: hidden;">
+                    <thead style="background-color: black; color: white;">
+                        <tr>
+                            <th><input type="checkbox" id="selectAllRivales"></th>
+                            <th>Nombre Equipo Rival</th>
+                            <th>Categoría</th>
+                            <th>Director</th>
+                            <th>Asistente</th>
+                            <th>Cédula Director</th>
+                            <th>Cédula Asistente</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rival in equipos_rivales %}
+                        <tr style="background-color: white; color: black;">
+                            <td><input type="checkbox" name="rivalesSeleccionados" value="{{ rival.nombre_equipo_rival }}"></td>
+                            <td>
+                                <a href="{{ url_for('equipo_rival.detalle_equipo_rival', nombre_torneo=torneo.nombre_torneo|replace(' ', '-'), nombre_equipo_rival=rival.nombre_equipo_rival|replace(' ', '-')) }}">
+                                    {{ rival.nombre_equipo_rival }}
+                                </a>
+                            </td>
+                            <td>{{ rival.categoria }}</td>
+                            <td>{{ rival.director or '---' }}</td>
+                            <td>{{ rival.asistente or '---' }}</td>
+                            <td>{{ rival.director_cedula or '---' }}</td>
+                            <td>{{ rival.asistente_cedula or '---' }}</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm editarRival" data-nombre="{{ rival.nombre_equipo_rival }}">Editar</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('torneo.detalle_torneo', id_torneo=id_torneo, nombre_equipo=equipo.nombre, nombre_torneo=torneo.nombre) }}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+
+<div class="modal fade" id="crearPartidoModal" tabindex="-1" aria-labelledby="crearPartidoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearPartidoModalLabel">Crear Nuevo Partido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearPartidoForm">
+                    <input type="hidden" name="id_torneo" value="{{ torneo.id_torneo }}">
+                    <div class="mb-3">
+                        <label for="nombre_partido" class="form-label">Nombre Partido</label>
+                        <input type="text" class="form-control" id="nombre_partido" name="nombre_partido" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre_equipo_rival" class="form-label">Equipo Rival</label>
+                        <select class="form-select" id="nombre_equipo_rival" name="nombre_equipo_rival" required>
+                            <option value="" disabled selected>Selecciona un equipo rival</option>
+                            {% for rival in equipos_rivales %}
+                                <option value="{{ rival.nombre_equipo_rival }}">{{ rival.nombre_equipo_rival }} ({{ rival.categoria }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="fecha" class="form-label">Fecha y Hora</label>
+                        <input type="datetime-local" class="form-control" id="fecha" name="fecha" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lugar" class="form-label">Lugar</label>
+                        <input type="text" class="form-control" id="lugar" name="lugar">
+                    </div>
+                    <div class="mb-3">
+                        <label for="marcador_local" class="form-label">Marcador Local</label>
+                        <input type="number" class="form-control" id="marcador_local" name="marcador_local" required min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="marcador_rival" class="form-label">Marcador Rival</label>
+                        <input type="number" class="form-control" id="marcador_rival" name="marcador_rival" required min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="video_url" class="form-label">URL Video</label>
+                        <input type="url" class="form-control" id="video_url" name="video_url">
+                    </div>
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editarPartidoModal" tabindex="-1" aria-labelledby="editarPartidoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarPartidoModalLabel">Editar Partido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarPartidoForm">
+                    <input type="hidden" id="editar_original_nombre" name="original_nombre">
+                    <input type="hidden" name="id_torneo" value="{{ torneo.id_torneo }}">
+                    <div class="mb-3">
+                        <label for="editar_nombre_partido" class="form-label">Nombre Partido</label>
+                        <input type="text" class="form-control" id="editar_nombre_partido" name="nombre_partido" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_nombre_equipo_rival" class="form-label">Equipo Rival</label>
+                        <input type="text" class="form-control" id="editar_nombre_equipo_rival" name="nombre_equipo_rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_fecha" class="form-label">Fecha y Hora</label>
+                        <input type="datetime-local" class="form-control" id="editar_fecha" name="fecha" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_lugar" class="form-label">Lugar</label>
+                        <input type="text" class="form-control" id="editar_lugar" name="lugar">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_marcador_local" class="form-label">Marcador Local</label>
+                        <input type="number" class="form-control" id="editar_marcador_local" name="marcador_local" required min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_marcador_rival" class="form-label">Marcador Rival</label>
+                        <input type="number" class="form-control" id="editar_marcador_rival" name="marcador_rival" required min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_video_url" class="form-label">URL Video</label>
+                        <input type="url" class="form-control" id="editar_video_url" name="video_url">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_observaciones" class="form-label">Observaciones</label>
+                        <textarea class="form-control" id="editar_observaciones" name="observaciones"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="crearRivalModal" tabindex="-1" aria-labelledby="crearRivalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearRivalModalLabel">Crear Nuevo Rival</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearRivalForm">
+                    <input type="hidden" name="id_torneo" value="{{ torneo.id_torneo }}">
+                    <div class="mb-3">
+                        <label for="nombre_equipo_rival_crear" class="form-label">Nombre Equipo Rival</label>
+                        <input type="text" class="form-control" id="nombre_equipo_rival_crear" name="nombre_equipo_rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="categoria_crear" class="form-label">Categoría</label>
+                        <input type="text" class="form-control" id="categoria_crear" name="categoria">
+                    </div>
+                    <div class="mb-3">
+                        <label for="director_crear" class="form-label">Director</label>
+                        <input type="text" class="form-control" id="director_crear" name="director">
+                    </div>
+                    <div class="mb-3">
+                        <label for="asistente_crear" class="form-label">Asistente</label>
+                        <input type="text" class="form-control" id="asistente_crear" name="asistente">
+                    </div>
+                    <div class="mb-3">
+                        <label for="director_cedula_crear" class="form-label">Cédula Director</label>
+                        <input type="text" class="form-control" id="director_cedula_crear" name="director_cedula">
+                    </div>
+                    <div class="mb-3">
+                        <label for="asistente_cedula_crear" class="form-label">Cédula Asistente</label>
+                        <input type="text" class="form-control" id="asistente_cedula_crear" name="asistente_cedula">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editarRivalModal" tabindex="-1" aria-labelledby="editarRivalModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarRivalModalLabel">Editar Rival</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarRivalForm">
+                    <input type="hidden" id="editar_original_nombre_rival" name="original_nombre_rival">
+                    <input type="hidden" name="id_torneo" value="{{ torneo.id_torneo }}">
+                    <div class="mb-3">
+                        <label for="editar_nombre_equipo_rival" class="form-label">Nombre Equipo Rival</label>
+                        <input type="text" class="form-control" id="editar_nombre_equipo_rival" name="nombre_equipo_rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_categoria" class="form-label">Categoría</label>
+                        <input type="text" class="form-control" id="editar_categoria" name="categoria">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_director" class="form-label">Director</label>
+                        <input type="text" class="form-control" id="editar_director" name="director">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_asistente" class="form-label">Asistente</label>
+                        <input type="text" class="form-control" id="editar_asistente" name="asistente">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_director_cedula" class="form-label">Cédula Director</label>
+                        <input type="text" class="form-control" id="editar_director_cedula" name="director_cedula">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editar_asistente_cedula" class="form-label">Cédula Asistente</label>
+                        <input type="text" class="form-control" id="editar_asistente_cedula" name="asistente_cedula">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario carga automática -->
+<div class="collapse mb-4" id="autoUploadPanel">
+    <div class="card card-body">
+      <form id="autoUploadForm" action="{{ url_for('equipo_rival.cargar_automatico_equipo_rival') }}" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+          <label for="archivo" class="form-label">Archivo PDF o Imagen</label>
+          <input class="form-control" type="file" id="archivo" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Cargar automáticamente</button>
+      </form>
+    </div>
+  </div>
+
+<script>
+    // Función genérica de fetch
+    function sendFetch(url, method, data) {
+        const opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+        if (data) opts.body = JSON.stringify(data);
+        return fetch(url, opts)
+            .then(res => { if (!res.ok) throw new Error(); return res.json(); });
+    }
+
+    // ---------------------------- PARTIDOS ----------------------------
+    // Seleccionar todos los partidos
+    document.getElementById('selectAllPartidos').addEventListener('change', function() {
+        document.querySelectorAll("input[name='partidosSeleccionados']").forEach(cb => cb.checked = this.checked);
+    });
+
+    // Crear partido
+    document.getElementById('crearPartidoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        sendFetch('/partido/', 'POST', data)
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // Editar partido: abrir modal con datos
+    document.querySelectorAll('.editarPartido').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const nombre = this.dataset.nombre;
+            const row = this.closest('tr');
+            document.getElementById('editar_original_nombre').value = nombre;
+            document.getElementById('editar_nombre_partido').value = row.children[1].innerText.trim();
+            document.getElementById('editar_nombre_equipo_rival').value = row.children[2].innerText.trim();
+            document.getElementById('editar_fecha').value = row.children[3].innerText.replace(' ', 'T');
+            document.getElementById('editar_lugar').value = row.children[4].innerText.trim();
+            document.getElementById('editar_marcador_local').value = row.children[5].innerText;
+            document.getElementById('editar_marcador_rival').value = row.children[6].innerText;
+            document.getElementById('editar_video_url').value = row.children[7].querySelector('a')?.href || '';
+            document.getElementById('editar_observaciones').value = row.children[8].innerText.trim();
+            new bootstrap.Modal(document.getElementById('editarPartidoModal')).show();
+        });
+    });
+
+    // Guardar edición de partido
+    document.getElementById('editarPartidoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        const original = data.original_nombre;
+        sendFetch(`/partido/${original}`, 'PUT', data)
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // Borrar partidos seleccionados
+    document.getElementById('borrarPartidosSeleccionados').addEventListener('click', function() {
+        const seleccionados = Array.from(document.querySelectorAll("input[name='partidosSeleccionados']:checked")).map(cb => cb.value);
+        if (!seleccionados.length) return alert('No hay partidos seleccionados');
+        Promise.all(seleccionados.map(nombre => fetch(`/partido/${nombre}`, { method: 'DELETE' })))
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // ---------------------------- RIVALES ----------------------------
+    // Seleccionar todos los rivales
+    document.getElementById('selectAllRivales').addEventListener('change', function() {
+        document.querySelectorAll("input[name='rivalesSeleccionados']").forEach(cb => cb.checked = this.checked);
+    });
+
+    // Crear rival
+    document.getElementById('crearRivalForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        sendFetch('/equipo_rival/', 'POST', data)
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // Editar rival: abrir modal con datos
+    document.querySelectorAll('.editarRival').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const nombre = this.dataset.nombre;
+            const row = this.closest('tr');
+            document.getElementById('editar_original_nombre_rival').value = nombre;
+            document.getElementById('editar_nombre_equipo_rival').value = row.children[1].innerText.trim();
+            document.getElementById('editar_categoria').value = row.children[2].innerText.trim();
+            document.getElementById('editar_director').value = row.children[3].innerText.trim();
+            document.getElementById('editar_asistente').value = row.children[4].innerText.trim();
+            document.getElementById('editar_director_cedula').value = row.children[5].innerText.trim();
+            document.getElementById('editar_asistente_cedula').value = row.children[6].innerText.trim();
+            new bootstrap.Modal(document.getElementById('editarRivalModal')).show();
+        });
+    });
+
+    // Guardar edición de rival
+    document.getElementById('editarRivalForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        const original = data.original_nombre_rival;
+        sendFetch(`/equipo_rival/${original}`, 'PUT', data)
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // Borrar rivales seleccionados
+    document.getElementById('borrarRivalesSeleccionados').addEventListener('click', function() {
+        const seleccionados = Array.from(document.querySelectorAll("input[name='rivalesSeleccionados']:checked")).map(cb => cb.value);
+        if (!seleccionados.length) return alert('No hay rivales seleccionados');
+        Promise.all(seleccionados.map(nombre => fetch(`/equipo_rival/${nombre}`, { method: 'DELETE' })))
+            .then(() => location.reload())
+            .catch(console.error);
+    });
+
+    // Manejo carga automática con Ajax
+    document.getElementById('autoUploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const form = this;
+        const formData = new FormData(form);
+        fetch(form.action, {
+        method: 'POST',
+        body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+        if (data.error) {
+            alert('Error: ' + data.error);
+        } else {
+            // Puedes actualizar dinámicamente la lista si usas AJAX
+            window.location.reload();
+        }
+        })
+        .catch(err => {
+        console.error(err);
+        alert('Error al procesar el archivo.');
+        });
+    });
+</script>
+{% endblock %}

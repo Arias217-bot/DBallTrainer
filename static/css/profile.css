@@ -1,0 +1,102 @@
+:root {
+    --primary-color: #f8841c;
+    --secondary-color: #000000;
+    --light-bg: #F9F9F9;
+    --border-radius: 20px;
+}
+
+body {
+    background: var(--light-bg);
+    color: var(--secondary-color);
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.card {
+    background: #fff;
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Ajuste del contenedor principal */
+#profile-container {
+    display: flex;
+    align-items: stretch; /* Hace que los elementos tengan la misma altura */
+    gap: 20px; /* Espacio entre las tarjetas */
+}
+
+/* Tarjeta de imagen de perfil */
+#profile-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1; /* Ocupa el espacio proporcional */
+}
+
+/* Imagen de perfil */
+#profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+}
+
+/* Tarjeta de información */
+#profile-info {
+    display: flex;
+    flex-direction: column;
+    flex: 2; /* Ocupa más espacio que el perfil */
+}
+
+.profile-info-item {
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--primary-color);
+}
+
+/* Sección de experiencia */
+#experience-section .card {
+    background: var(--light-bg);
+    border: 2px solid var(--primary-color);
+}
+
+/* Botón personalizado */
+.btn-outline-secondary {
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 0.5rem 1.5rem;
+    font-weight: bold;
+    transition: background 0.3s, color 0.3s;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    #profile-container {
+        flex-direction: column; /* Apila los elementos */
+    }
+
+    #profile-info {
+        flex: none;
+    }
+
+    .btn-outline-secondary {
+        width: 100%;
+    }
+}

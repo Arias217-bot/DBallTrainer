@@ -1,0 +1,261 @@
+{% extends './base.html' %}
+{% block title %} Gestión de Equipos {% endblock %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h2 class="text-center">Mis Equipos</h2>
+
+    <!-- Botón para abrir el modal de creación de equipo -->
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#crearEquipoModal">
+        Crear equipo
+    </button>
+
+    <!-- Lista de equipos -->
+    <ul class="list-group">
+        {% for equipo in equipos %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <a href="{{ url_for('equipo_bp.detalle_equipo', documento=documento, nombre_equipo=equipo.nombre.replace(' ', '-').lower()) }}">
+                        {{ equipo.nombre }}
+                    </a>
+                    <span class="badge bg-primary ms-2">{{ equipo.descripcion }}</span>
+                </div>
+                <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-warning btn-edit" data-id="{{ equipo.id_equipo }}">Editar</button>
+                    <button class="btn btn-danger btn-delete" data-id="{{ equipo.id_equipo }}">Borrar</button>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Modal para crear un equipo con dos pestañas -->
+<div class="modal fade" id="crearEquipoModal" tabindex="-1" aria-labelledby="crearEquipoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crearEquipoModalLabel">Crear un nuevo equipo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="nav nav-tabs" id="crearTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-equipo" data-bs-toggle="tab" data-bs-target="#datos-equipo" type="button" role="tab">Equipo</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-usuario" data-bs-toggle="tab" data-bs-target="#datos-usuario" type="button" role="tab">Mis Datos</button>
+                    </li>
+                </ul>
+                <form id="crearEquipoForm">
+                    <div class="tab-content p-3">
+                        <div class="tab-pane fade show active" id="datos-equipo" role="tabpanel">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">Nombre del equipo</label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" required>
+                                <div class="text-danger mt-1" id="nombreError" style="display: none;">Este nombre ya está en uso.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_categoria_edad" class="form-label">Categoría de Edad</label>
+                                <select class="form-select" id="id_categoria_edad" name="id_categoria_edad" required>
+                                    {% for categoria in categorias_edad %}
+                                        <option value="{{ categoria.id_categoria_edad }}">{{ categoria.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_categoria_sexo" class="form-label">Categoría de Sexo</label>
+                                <select class="form-select" id="id_categoria_sexo" name="id_categoria_sexo" required>
+                                    {% for categoria in categorias_sexo %}
+                                        <option value="{{ categoria.id_categoria_sexo }}">{{ categoria.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">Descripción</label>
+                                <textarea class="form-control" id="descripcion" name="descripcion"></textarea>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="datos-usuario" role="tabpanel">
+                            <input type="hidden" name="documento" value="{{ documento }}">
+                            <div class="mb-3">
+                                <label for="id_rol" class="form-label">Rol</label>
+                                <select id="id_rol" name="id_rol" class="form-select" required>
+                                    {% for rol in roles %}
+                                        <option value="{{ rol.id_rol }}">{{ rol.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="id_posicion" class="form-label">Posición</label>
+                                <select id="id_posicion" name="id_posicion" class="form-select" required>
+                                    {% for pos in posiciones %}
+                                        <option value="{{ pos.id_posicion }}">{{ pos.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="numero" class="form-label">Número</label>
+                                <input type="number" id="numero" name="numero" class="form-control" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Crear equipo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar un equipo -->
+<div class="modal fade" id="editarEquipoModal" tabindex="-1" aria-labelledby="editarEquipoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editarEquipoModalLabel">Editar equipo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editarEquipoForm" data-id="">
+                    <div class="mb-3">
+                        <label for="edit_nombre" class="form-label">Nombre del equipo</label>
+                        <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_id_categoria_edad" class="form-label">Categoría de Edad</label>
+                        <select class="form-select" id="edit_id_categoria_edad" name="id_categoria_edad" required>
+                            {% for categoria in categorias_edad %}
+                                <option value="{{ categoria.id_categoria_edad }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_id_categoria_sexo" class="form-label">Categoría de Sexo</label>
+                        <select class="form-select" id="edit_id_categoria_sexo" name="id_categoria_sexo" required>
+                            {% for categoria in categorias_sexo %}
+                                <option value="{{ categoria.id_categoria_sexo }}">{{ categoria.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" id="edit_descripcion" name="descripcion"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('crearEquipoModal').addEventListener('shown.bs.modal', function () {
+        document.getElementById('nombre').focus();
+    });
+
+    // Crear equipo + relación
+    document.getElementById("crearEquipoForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(this).entries());
+        try {
+            let res = await fetch("/equipos/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nombre: data.nombre,
+                    id_categoria_edad: data.id_categoria_edad,
+                    id_categoria_sexo: data.id_categoria_sexo,
+                    descripcion: data.descripcion
+                })
+            });
+            if (!res.ok) throw await res.json();
+            const equipo = await res.json();
+            const relData = {
+                documento: data.documento,
+                id_equipo: equipo.id_equipo,
+                id_rol: data.id_rol,
+                id_posicion: data.id_posicion,
+                numero: data.numero
+            };
+            res = await fetch("/usuario_equipo/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(relData)
+            });
+            if (!res.ok) throw await res.json();
+            location.reload();
+        } catch (err) {
+            console.error('Error en la creación:', err);
+            if (err.error && err.error.toLowerCase().includes('nombre')) {
+                document.getElementById('nombreError').style.display = 'block';
+            }
+        }
+    });
+
+    // Borrar equipo
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('¿Confirmas que deseas borrar este equipo?')) return;
+            const id = btn.getAttribute('data-id');
+            try {
+                const res = await fetch(`/equipos/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw await res.json();
+                location.reload();
+            } catch(err) {
+                console.error('Error al borrar:', err);
+            }
+        });
+    });
+
+    // Abrir modal de edición
+    document.querySelectorAll('.btn-edit').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-id');
+            try {
+                const res = await fetch(`/equipos/${id}`);
+                if (!res.ok) throw await res.json();
+                const data = await res.json();
+                document.getElementById('edit_nombre').value = data.nombre;
+                document.getElementById('edit_id_categoria_edad').value = data.id_categoria_edad;
+                document.getElementById('edit_id_categoria_sexo').value = data.id_categoria_sexo;
+                document.getElementById('edit_descripcion').value = data.descripcion || '';
+                const form = document.getElementById('editarEquipoForm');
+                form.setAttribute('data-id', id);
+                new bootstrap.Modal(document.getElementById('editarEquipoModal')).show();
+            } catch(err) {
+                console.error('Error al cargar datos:', err);
+            }
+        });
+    });
+
+    // Guardar cambios de edición
+    document.getElementById('editarEquipoForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const id = this.getAttribute('data-id');
+        const data = Object.fromEntries(new FormData(this).entries());
+        try {
+            const res = await fetch(`/equipos/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw await res.json();
+            location.reload();
+        } catch(err) {
+            console.error('Error al editar:', err);
+        }
+    });
+</script>
+{% endblock %}

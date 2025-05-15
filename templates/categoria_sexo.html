@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categoría por Sexo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .card-container {
+            max-width: 700px;
+            margin: auto;
+        }
+        .card-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="crud-container"
+         data-base-url="{{ url_for('categoria_sexo.create') }}"
+         data-list-url="{{ url_for('categoria_sexo.categoria_sexo_page') }}"
+         class="card-container">
+        <div class="mb-4">
+            <form method="GET" action="{{ url_for('categoria_sexo.categoria_sexo_page') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar categoría..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </form>
+        </div>
+
+        <div class="text-center mb-3">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+                ➕ Crear Nueva Categoría
+            </button>
+        </div>
+
+        <div class="collapse mb-4" id="formPanel">
+            <div class="card card-body">
+                <form class="form-create">
+                    <div class="mb-3">
+                        <input type="text" name="nombre" class="form-control" placeholder="Escribe el nombre de la categoría" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="descripcion" class="form-control" placeholder="Escribe la descripción de la categoría" required>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-create">Crear</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-lg p-4 rounded-4 card-list">
+            <h2 class="text-center mb-4">Categorías por Sexo</h2>
+            {% for categoria_sexo in categorias_sexo %}
+                <div class="border p-3 mb-3 rounded bg-white" data-id="{{ categoria_sexo.id_categoria_sexo }}">
+                    <div class="mb-2"><strong>Nombre:</strong> <span class="item-value nombre">{{ categoria_sexo.nombre }}</span></div>
+                    <div class="mb-2"><strong>Descripción:</strong> <span class="item-value descripcion">{{ categoria_sexo.descripcion }}</span></div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-warning btn-sm btn-edit" data-id="{{ categoria_sexo.id_categoria_sexo }}">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ categoria_sexo.id_categoria_sexo }}">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-edit d-none mt-3" data-id="{{ categoria_sexo.id_categoria_sexo }}">
+                        <input name="nombre" class="form-control mb-2" value="{{ categoria_sexo.nombre }}">
+                        <input name="descripcion" class="form-control mb-2" value="{{ categoria_sexo.descripcion }}">
+                        <button class="btn btn-sm btn-save" data-id="{{ categoria_sexo.id_categoria_sexo }}">Guardar</button>
+                        <button class="btn btn-sm btn-cancel" data-id="{{ categoria_sexo.id_categoria_sexo }}">Cancelar</button>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">No se encontraron categorías</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/crud_general.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

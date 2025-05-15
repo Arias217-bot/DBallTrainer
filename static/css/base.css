@@ -1,0 +1,77 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+}
+
+.sidebar {
+    height: 100vh;
+    width: 125px;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background-color: #f8841c;
+    padding-top: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.3s ease;
+    z-index: 999;
+}
+
+.sidebar.hidden {
+    transform: translateX(-125px);
+}
+
+.sidebar a {
+    padding: 10px 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    display: block;
+    margin: 5px;
+    text-align: center;
+    background: black;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.sidebar a:hover {
+    background: #111;
+}
+
+.text-danger {
+    margin-top: auto;
+    text-align: center;
+    padding: 15px;
+    color: red;
+}
+
+.content {
+    margin-left: 135px;
+    padding: 20px;
+    transition: margin-left 0.3s;
+}
+
+.content.expanded {
+    margin-left: 10px;
+}
+
+.toggle-btn {
+    position: fixed;
+    top: 20px;
+    left: 130px; /* Pegado afuera de la barra */
+    background-color: #333;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    transition: left 0.3s ease;
+    z-index: 1000;
+}
+
+.sidebar.hidden + .toggle-btn {
+    left: 10px; /* Se ajusta cuando la barra se oculta */
+}

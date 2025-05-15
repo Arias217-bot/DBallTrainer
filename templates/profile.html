@@ -1,0 +1,143 @@
+{% extends './base.html' %}
+{% block title %} Perfil de Usuario {% endblock %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.13.1/css/all.css" integrity="sha384-xxzQGERXS00kBmZW/6qxqJPyxW3UR0BPsL4c8ILaIWXva5kFi7TxkIIaMiKtqV1Q" crossorigin="anonymous">
+{% endblock %}
+
+{% block body %}
+<section id="profile-section" style="background-color: #ffffff;">
+    <div id="profile-container" class="row mt-4">
+        <div id="profile-card" class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <img id="profile-img" src="{{ url_for('static', filename='images/avatar.png') }}" alt="avatar" class="rounded-circle img-fluid" style="width: 150px;">
+                    <h5 class="my-3">{{ usuario.nombre }}</h5>
+                    <button id="edit-button" class="btn btn-secondary">Editar</button>
+                    <button id="delete-button" class="btn btn-danger">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="profile-info" class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form id="edit-profile-form">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required disabled>
+
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+                            <input type="date" class="form-control" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento }}" required disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sexo" class="form-label">Sexo</label>
+                            <select class="form-control" id="sexo" name="sexo" required disabled>
+                                <option value="Masculino" {% if usuario.sexo == 'Masculino' %}selected{% endif %}>Masculino</option>
+                                <option value="Femenino" {% if usuario.sexo == 'Femenino' %}selected{% endif %}>Femenino</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="text" class="form-control" id="telefono" name="telefono" value="{{ usuario.telefono }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="peso" class="form-label">Peso</label>
+                            <input type="text" class="form-control" id="peso" name="peso" value="{{ usuario.peso }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="altura" class="form-label">altura</label>
+                            <input type="text" class="form-control" id="altura" name="altura" value="{{ usuario.altura }}" disabled>
+                        </div>
+                        <div class="mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <input type="text" class="form-control" id="direccion" name="direccion" value="{{ usuario.direccion }}" disabled>
+                                <label for="brado" class="form-label">Brazo Dominante</label>
+                                <select class="form-control" id="brado" name="brado" disabled>
+                                    <option value="Derecho" {% if usuario.brado == 'Derecho' %}selected{% endif %}>Derecho</option>
+                                    <option value="Izquierdo" {% if usuario.brado == 'Izquierdo' %}selected{% endif %}>Izquierdo</option>
+                                    <option value="Ambidiestro" {% if usuario.brado == 'Ambidiestro' %}selected{% endif %}>Ambidiestro</option>
+                                </select>
+                                <label for="perfil" class="form-label">Icono jugador</label>
+                                <input type="file" class="form-control" id="img" name="img" accept=".png, .jpg, .jpeg" disabled>
+                                <label for="experiencia" class="form-label">Experiencia</label>
+                                <textarea class="form-control" id="experiencia" name="experiencia" disabled>{{ usuario.experiencia }}</textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" id="save-button" style="display: none;">Guardar Cambios</button>
+                            <button id="cancel-button" class="btn btn-warning" style="display: none;">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const editButton = document.getElementById('edit-button');
+        const saveButton = document.getElementById('save-button');
+        const cancelButton = document.getElementById('cancel-button');
+        const formInputs = document.querySelectorAll('#edit-profile-form input, #edit-profile-form select, #edit-profile-form textarea');
+
+        editButton.addEventListener('click', function() {
+            formInputs.forEach(input => {
+                input.disabled = false;
+            });
+            editButton.style.display = 'none';
+            saveButton.style.display = 'inline-block';
+            cancelButton.style.display = 'inline-block';
+        });
+
+        cancelButton.addEventListener('click', function(event) {
+            event.preventDefault(); // Evita que el formulario se envíe
+            formInputs.forEach(input => {
+                input.disabled = true;
+            });
+            editButton.style.display = 'inline-block';
+            saveButton.style.display = 'none';
+            cancelButton.style.display = 'none';
+            // Restaura los valores originales del formulario
+            document.getElementById('email').value = "{{ usuario.email }}";
+            document.getElementById('fecha_nacimiento').value = "{{ usuario.fecha_nacimiento }}";
+            document.getElementById('sexo').value = "{{ usuario.sexo }}";
+            document.getElementById('telefono').value = "{{ usuario.telefono }}";
+            document.getElementById('direccion').value = "{{ usuario.direccion }}";
+            document.getElementById('experiencia').value = "{{ usuario.experiencia }}";
+        });
+
+        document.getElementById('edit-profile-form').addEventListener('submit', function(event) {
+            // Aquí va tu lógica para enviar los datos del formulario al servidor
+            // y mostrar la alerta de éxito solo si la actualización fue exitosa.
+            alert('Perfil actualizado correctamente');
+            formInputs.forEach(input => {
+                input.disabled = true;
+            });
+            editButton.style.display = 'inline-block';
+            saveButton.style.display = 'none';
+            cancelButton.style.display = 'none';
+        });
+
+        document.getElementById("delete-button").addEventListener("click", function() {
+        if (confirm("¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.")) {
+            fetch("/usuarios/{{ usuario.documento }}", {
+                method: "DELETE"
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert("Usuario eliminado correctamente");
+                window.location.href = "/login"; 
+            })
+            .catch(error => console.error("Error al eliminar el usuario:", error));
+        }
+    });
+    });
+</script>
+
+{% endblock %}

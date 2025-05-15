@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .card-container {
+            max-width: 900px;
+            margin: auto;
+        }
+        .card-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="crud-container"
+         data-base-url="{{ url_for('partido.create') }}"
+         data-list-url="{{ url_for('partido.partido_page') }}"
+         class="card-container">
+        <div class="mb-4">
+            <form method="GET" action="{{ url_for('partido.partido_page') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar partido..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </form>
+        </div>
+
+        <div class="text-center mb-3">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+                ➕ Crear Nuevo Partido
+            </button>
+        </div>
+
+        <div class="collapse mb-4" id="formPanel">
+            <div class="card card-body">
+                <form class="form-create">
+                    <div class="mb-3 hidden">
+                    <input type="text" name="nombre" class="form-control" value="partido">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="nombre_partido" class="form-control" placeholder="Nombre del partido" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="id_torneo" class="form-control" placeholder="ID del torneo" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="nombre_equipo_rival" class="form-control" placeholder="Nombre del equipo rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="datetime-local" name="fecha" class="form-control" placeholder="Fecha del partido" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" name="lugar" class="form-control" placeholder="Lugar del partido">
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="marcador_local" class="form-control" placeholder="Marcador local" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="number" name="marcador_rival" class="form-control" placeholder="Marcador rival" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="url" name="video_url" class="form-control" placeholder="URL del video (opcional)">
+                    </div>
+                    <div class="mb-3">
+                        <textarea name="observaciones" class="form-control" placeholder="Observaciones" rows="3"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary btn-create">Crear</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-lg p-4 rounded-4 card-list">
+            <h2 class="text-center mb-4">Partidos</h2>
+            {% for partido in partidos %}
+                <div class="border p-3 mb-3 rounded bg-white" data-id="{{ partido.nombre_partido }}">
+                    <div><strong>Nombre:</strong> <span class="item-value nombre_partido">{{ partido.nombre_partido }}</span></div>
+                    <div><strong>ID Torneo:</strong> <span class="item-value id_torneo">{{ partido.id_torneo }}</span></div>
+                    <div><strong>Equipo Rival:</strong> <span class="item-value nombre_equipo_rival">{{ partido.nombre_equipo_rival }}</span></div>
+                    <div><strong>Fecha:</strong> {{ partido.fecha }}</div>
+                    <div><strong>Lugar:</strong> <span class="item-value lugar">{{ partido.lugar }}</span></div>
+                    <div><strong>Marcador Local:</strong> <span class="item-value marcador_local">{{ partido.marcador_local }}</span></div>
+                    <div><strong>Marcador Rival:</strong> <span class="item-value marcador_rival">{{ partido.marcador_rival }}</span></div>
+                    <div><strong>Video:</strong> <a href="{{ partido.video_url }}" target="_blank">{{ partido.video_url }}</a></div>
+                    <div><strong>Observaciones:</strong> <span class="item-value observaciones">{{ partido.observaciones }}</span></div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-warning btn-sm btn-edit" data-id="{{ partido.nombre_partido }}">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ partido.nombre_partido }}">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-edit d-none mt-3" data-id="{{ partido.nombre_partido }}">
+                        <input type="number" name="id_torneo" class="form-control mb-2" value="{{ partido.id_torneo }}">
+                        <input type="text" name="nombre_equipo_rival" class="form-control mb-2" value="{{ partido.nombre_equipo_rival }}">
+                        <input type="datetime-local" name="fecha" class="form-control mb-2" value="{{ partido.fecha|replace(' ', 'T') }}">
+                        <input type="text" name="lugar" class="form-control mb-2" value="{{ partido.lugar }}">
+                        <input type="number" name="marcador_local" class="form-control mb-2" value="{{ partido.marcador_local }}">
+                        <input type="number" name="marcador_rival" class="form-control mb-2" value="{{ partido.marcador_rival }}">
+                        <input type="url" name="video_url" class="form-control mb-2" value="{{ partido.video_url }}">
+                        <textarea name="observaciones" class="form-control mb-2">{{ partido.observaciones }}</textarea>
+                        <button class="btn btn-sm btn-save" data-id="{{ partido.nombre_partido }}">Guardar</button>
+                        <button class="btn btn-sm btn-cancel" data-id="{{ partido.nombre_partido }}">Cancelar</button>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">No se encontraron partidos</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/crud_general.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!-- templates/detalle_equipo_rival.html -->
+{% extends './base.html' %}
+{% block title %} Detalle del Torneo {% endblock %}
+
+{% block body %}
+<div class="container mt-4" style="background-color: #f8841c; padding: 20px; border-radius: 10px;">
+  <h2 class="text-center mb-4" style="color: black; font-weight: bold;">
+    Equipo Rival: {{ torneo.nombre_torneo }}
+  </h2>
+
+  <ul class="nav nav-tabs" id="equipoRivalTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="descripcion-tab" data-bs-toggle="tab" data-bs-target="#descripcion" type="button" role="tab">Descripción</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="integrantes-tab" data-bs-toggle="tab" data-bs-target="#integrantes" type="button" role="tab">Integrantes</button>
+    </li>
+  </ul>
+
+  <div class="tab-content mt-4">
+    <!-- Descripción -->
+    <div class="tab-pane fade show active" id="descripcion" role="tabpanel">
+      <div id="crud-descripcion-rival-container"
+           data-update-url="{{ url_for('equipo_rival.update', id=equipo_rival.nombre_equipo_rival) }}">
+        <table class="table text-center rounded" style="overflow: hidden;">
+          <thead style="background-color: black; color: white;">
+            <tr>
+              <th>Nombre Equipo Rival</th>
+              <th>Categoría</th>
+              <th>Director</th>
+              <th>Asistente</th>
+              <th>Cédula Director</th>
+              <th>Cédula Asistente</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background-color: white; color: black;">
+              <td>{{ equipo_rival.nombre_equipo_rival }}</td>
+              <td><span class="item-value categoria">{{ equipo_rival.categoria }}</span></td>
+              <td><span class="item-value director">{{ equipo_rival.director or '---' }}</span></td>
+              <td><span class="item-value asistente">{{ equipo_rival.asistente or '---' }}</span></td>
+              <td><span class="item-value director_cedula">{{ equipo_rival.director_cedula or '---' }}</span></td>
+              <td><span class="item-value asistente_cedula">{{ equipo_rival.asistente_cedula or '---' }}</span></td>
+              <td>
+                <button type="button" class="btn btn-warning btn-sm btn-edit-descripcion">✏️</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <!-- Formulario de edición -->
+        <div class="collapse mt-3" id="formEditarRival">
+          <div class="card card-body">
+            <form id="form-edit-descripcion">
+              <div class="mb-2">
+                <label class="form-label">Categoría</label>
+                <input type="text" name="categoria" class="form-control" value="{{ equipo_rival.categoria }}" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Director</label>
+                <input type="text" name="director" class="form-control" value="{{ equipo_rival.director }}">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Asistente</label>
+                <input type="text" name="asistente" class="form-control" value="{{ equipo_rival.asistente }}">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Cédula Director</label>
+                <input type="text" name="director_cedula" class="form-control" value="{{ equipo_rival.director_cedula }}">
+              </div>
+              <div class="mb-2">
+                <label class="form-label">Cédula Asistente</label>
+                <input type="text" name="asistente_cedula" class="form-control" value="{{ equipo_rival.asistente_cedula }}">
+              </div>
+              <button type="button" class="btn btn-primary btn-save-descripcion">Guardar</button>
+              <button type="button" class="btn btn-secondary" data-bs-toggle="collapse" data-bs-target="#formEditarRival">Cancelar</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integrantes -->
+    <div class="tab-pane fade" id="integrantes" role="tabpanel">
+      <div id="crud-integrantes-rivales-container"
+           data-base-url="{{ url_for('jugadores_rivales.create') }}"
+           data-list-url="{{ url_for('equipo_rival.detalle_equipo_rival',
+               nombre_torneo=torneo.nombre_torneo|replace(' ', '-')|lower,
+               nombre_equipo_rival=equipo_rival.nombre_equipo_rival|replace(' ', '-')|lower) }}#integrantes">
+        <div class="mb-3 text-end">
+          <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formCrearIntegranteRival" aria-expanded="false">➕ Agregar Integrante</button>
+        </div>
+
+        <div class="collapse mb-4" id="formCrearIntegranteRival">
+          <div class="card card-body">
+            <form class="form-create">
+              <input type="hidden" name="nombre_equipo_rival" value="{{ equipo_rival.nombre_equipo_rival }}">
+              <div class="mb-2"><input type="text" name="documento" class="form-control" placeholder="Documento" required></div>
+              <div class="mb-2"><input type="text" name="nombre" class="form-control" placeholder="Nombre" required></div>
+              <div class="mb-2"><input type="text" name="telefono" class="form-control" placeholder="Teléfono"></div>
+              <div class="mb-2"><input type="email" name="email" class="form-control" placeholder="Correo electrónico"></div>
+              <div class="mb-2"><input type="text" name="eps" class="form-control" placeholder="EPS"></div>
+              <button type="button" class="btn btn-primary btn-create">Crear</button>
+            </form>
+          </div>
+        </div>
+
+        <div class="card shadow-lg p-3 rounded card-list">
+          <h4>Lista de Integrantes</h4>
+          <div class="list-group list-group-flush">
+            {% for integrante in jugadores_rivales %}
+            <div class="list-group-item d-flex justify-content-between align-items-start border p-3 mb-2 rounded bg-white" data-id="{{ integrante.documento }}">
+              <div>
+                <strong><span class="item-value documento">{{ integrante.documento }}</span></strong> (<span class="item-value nombre">{{ integrante.nombre }}</span>)<br>
+                <small>Teléfono: <span class="item-value telefono">{{ integrante.telefono }}</span> | Email: <span class="item-value email">{{ integrante.email }}</span> | EPS: <span class="item-value eps">{{ integrante.eps }}</span></small>
+              </div>
+              <div>
+                <button class="btn btn-sm btn-warning me-1 btn-edit" data-id="{{ integrante.documento }}">✏️</button>
+                <button class="btn btn-sm btn-danger btn-delete" data-id="{{ integrante.documento }}">🗑️</button>
+              </div>
+              <div class="card mt-2 p-3 d-none form-edit" data-id="{{ integrante.documento }}">
+                <div class="mb-2">Documento: <span class="item-value documento">{{ integrante.documento }}</span> (No editable)</div>
+                <div class="mb-3"><label class="form-label">Nombre</label><input type="text" class="form-control" name="nombre" value="{{ integrante.nombre }}" required></div>
+                <div class="mb-3"><label class="form-label">Teléfono</label><input type="text" class="form-control" name="telefono" value="{{ integrante.telefono }}"></div>
+                <div class="mb-3"><label class="form-label">Correo electrónico</label><input type="email" class="form-control" name="email" value="{{ integrante.email }}"></div>
+                <div class="mb-3"><label class="form-label">EPS</label><input type="text" class="form-control" name="eps" value="{{ integrante.eps }}"></div>
+                <button class="btn btn-primary btn-sm btn-save" data-id="{{ integrante.documento }}">Guardar</button>
+                <button class="btn btn-secondary btn-sm btn-cancel" data-id="{{ integrante.documento }}">Cancelar</button>
+              </div>
+            </div>
+            {% else %}
+            <p class="text-center">No hay integrantes</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/equipo_rival.js') }}"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Edición descripción
+    const descContainer = document.getElementById('crud-descripcion-rival-container');
+    const updateUrl = descContainer.getAttribute('data-update-url');
+    const formCollapse = document.getElementById('formEditarRival');
+    const editBtn = descContainer.querySelector('.btn-edit-descripcion');
+    const saveBtn = descContainer.querySelector('.btn-save-descripcion');
+    editBtn.addEventListener('click', () => new bootstrap.Collapse(formCollapse, { toggle: true }));
+    saveBtn.addEventListener('click', async () => {
+      const form = document.getElementById('form-edit-descripcion');
+      const data = Object.fromEntries(new FormData(form).entries());
+      try {
+        const response = await fetch(updateUrl, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (!response.ok) throw new Error('Error al actualizar equipo');
+        window.location.hash = '#descripcion'; window.location.reload();
+      } catch (err) { alert(err); }
+    });
+  });
+</script>
+
+{% endblock %}

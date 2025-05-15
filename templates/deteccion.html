@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Detecciones</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      background-color: #f8f9fa;
+      padding: 1rem;
+    }
+    .card-container {
+      max-width: 700px;
+      margin: auto;
+    }
+    .card-list {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="crud-container" 
+     data-base-url="{{ url_for('deteccion.create') }}" 
+     data-list-url="{{ url_for('deteccion.deteccion_page') }}" 
+     class="card-container">
+
+    <!-- Formulario de Búsqueda -->
+    <div class="mb-4">
+      <form method="GET" action="{{ url_for('deteccion.deteccion_page') }}" class="d-flex">
+        <input type="text" name="q" class="form-control me-2" placeholder="Buscar deteccion..." value="{{ q }}">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+      </form>
+    </div>
+
+    <!-- Botón para crear nueva deteccion -->
+    <div class="text-center mb-3">
+      <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+        ➕ Crear Nueva Detección
+      </button>
+    </div>
+
+    <!-- Formulario para crear nueva deteccion -->
+    <div class="collapse mb-4" id="formPanel">
+      <div class="card card-body">
+        <form class="form-create">
+          <div class="mb-3">
+            <input type="text" name="nombre" class="form-control" placeholder="Escribe el nombre de la deteccion" required>
+          </div>
+          <button type="button" class="btn btn-primary btn-create">Crear</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Lista de Detecciones -->
+    <div class="card shadow-lg p-4 rounded-4 card-list">
+      <h2 class="text-center mb-4">Detecciones</h2>
+      {% for deteccion in detecciones %}
+        <div class="border p-3 mb-3 rounded bg-white" data-id="{{ deteccion.id_deteccion }}">
+          <div class="mb-2"><strong>Nombre:</strong> <span class="item-value nombre">{{ deteccion.nombre }}</span></div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-warning btn-sm btn-edit" data-id="{{ deteccion.id_deteccion }}">✏️ Editar</button>
+            <button class="btn btn-danger btn-sm btn-delete" data-id="{{ deteccion.id_deteccion }}">🗑️ Eliminar</button>
+          </div>
+
+          <!-- Formulario de edición (oculto inicialmente) -->
+          <div class="form-edit d-none mt-3" data-id="{{ deteccion.id_deteccion }}">
+            <input name="nombre" class="form-control mb-2" value="{{ deteccion.nombre }}">
+            <button class="btn btn-sm btn-save" data-id="{{ deteccion.id_deteccion }}">Guardar</button>
+            <button class="btn btn-sm btn-cancel" data-id="{{ deteccion.id_deteccion }}">Cancelar</button>
+          </div>
+        </div>
+      {% else %}
+        <p class="text-center">No se encontraron detecciones.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Script para manejar la lógica CRUD (generalizado) -->
+  <script src="{{ url_for('static', filename='js/crud_general.js') }}"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

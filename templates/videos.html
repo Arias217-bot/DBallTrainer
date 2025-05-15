@@ -1,0 +1,164 @@
+<!-- templates/videos-->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Videos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 1rem;
+        }
+        .card-container {
+            max-width: 800px;
+            margin: auto;
+        }
+        .card-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        video {
+            max-width: 100%;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="crud-container"
+         data-base-url="{{ url_for('videos.upload') }}"
+         data-list-url="{{ url_for('videos.videos_page') }}"
+         class="card-container">
+        <!-- Buscador -->
+        <div class="mb-4">
+            <form method="GET" action="{{ url_for('videos.videos_page') }}" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="Buscar videos..." value="{{ q }}">
+                <button type="submit" class="btn btn-outline-primary">Buscar</button>
+            </form>
+        </div>
+        <!-- Botón para abrir panel de subida -->
+        <div class="text-center mb-3">
+            <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPanel" aria-expanded="false" aria-controls="formPanel">
+                ➕ Subir Nuevo Video
+            </button>
+        </div>
+        <!-- Formulario de subida -->
+        <div class="collapse mb-4" id="formPanel">
+            <div class="card card-body">
+                <form class="form-create" enctype="multipart/form-data" method="POST" action="{{ url_for('videos.upload') }}">
+                    <div class="mb-3">
+                        <input type="text" name="nombre" class="form-control" placeholder="Nombre del video" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" name="video_file" class="form-control" accept="video/*" required>
+                    </div>
+                    <!-- Campo manual para documento de usuario -->
+                    <div class="mb-3">
+                        <input type="text" name="documento_usuario" class="form-control" placeholder="Documento de usuario" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Subir</button>
+                </form>
+            </div>
+        </div>
+        <!-- Lista de videos -->
+        <div class="card shadow-lg p-4 rounded-4 card-list">
+            <h2 class="text-center mb-4">Lista de Videos</h2>
+            {% for video in videos %}
+                <div class="border p-3 mb-3 rounded bg-white" data-id="{{ video.id_video }}">
+                    <div class="mb-2"><strong>Nombre:</strong> <span class="item-value nombre">{{ video.nombre }}</span></div>
+                    <div class="mb-2">
+                        <video controls>
+                            <source src="{{ video.url }}" type="video/mp4">
+                            Tu navegador no soporta el elemento de video.
+                        </video>
+                    </div>
+                    <div class="d-flex gap-2 mt-2">
+                        <button class="btn btn-warning btn-sm btn-edit" data-id="{{ video.id_video }}">✏️ Editar</button>
+                        <button class="btn btn-danger btn-sm btn-delete" data-id="{{ video.id_video }}">🗑️ Eliminar</button>
+                    </div>
+                    <div class="form-edit d-none mt-3" data-id="{{ video.id_video }}">
+                        <input name="nombre" class="form-control mb-2" value="{{ video.nombre }}">
+                        <input name="url" class="form-control mb-2" value="{{ video.url }}">
+                        <input name="documento_usuario" type="hidden" value="{{ video.documento_usuario }}">
+                        <button class="btn btn-sm btn-save" data-id="{{ video.id_video }}">Guardar</button>
+                        <button class="btn btn-sm btn-cancel" data-id="{{ video.id_video }}">Cancelar</button>
+                    </div>
+                </div>
+            {% else %}
+                <p class="text-center">No se encontraron videos</p>
+            {% endfor %}
+        </div>
+        <div class="card mt-4">
+            <div class="card-header">
+                <h3>Análisis de Voleibol</h3>
+            </div>
+            <div class="card-body">
+                <form id="formAnalisis" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Acción a analizar:</label>
+                        <select name="tipo_deteccion" class="form-select" required>
+                            <option value="Saque">Saque</option>
+                            <option value="Ataque">Ataque</option>
+                            <option value="Colocador">Colocador</option>
+                            <option value="Recibo">Recibo</option>
+                            <option value="Bloqueo">Bloqueo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <input type="file" name="video" class="form-control" accept="video/*" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Analizar Video</button>
+                </form>
+                
+                <div id="resultadosAnalisis" class="mt-4 d-none">
+                    <h4>Resultados:</h4>
+                    <div class="progress mb-3">
+                        <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <div id="detallesResultado"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/videos.js') }}"></script>
+    document.getElementById('formAnalisis').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const tipoDeteccion = formData.get('tipo_deteccion');
+        const resultadosDiv = document.getElementById('resultadosAnalisis');
+        resultadosDiv.classList.remove('d-none');
+        
+        try {
+            // Mostrar progreso
+            const progressBar = document.getElementById('progressBar');
+            progressBar.style.width = '0%';
+            
+            // Enviar al backend
+            const response = await fetch(`/analisis/video/${tipoDeteccion}`, {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) throw await response.json();
+            
+            const data = await response.json();
+            
+            // Procesar resultados
+            progressBar.style.width = '100%';
+            document.getElementById('detallesResultado').innerHTML = `
+                <p>Total frames analizados: ${data.length}</p>
+                <p>Contactos detectados: ${data.filter(f => f.contacto).length}</p>
+                <pre>${JSON.stringify(data.slice(0, 3), null, 2)}</pre> <!-- Muestra primeros 3 frames -->
+            `;
+            
+        } catch (error) {
+            resultadosDiv.innerHTML = `<div class="alert alert-danger">Error: ${error.error || 'Error desconocido'}</div>`;
+        }
+    });
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
