@@ -184,6 +184,8 @@ CREATE TABLE IF NOT EXISTS public.videos
     id_modalidad integer,
     id_deteccion integer,
     resultados_analisis jsonb,
+    reporte_generado boolean DEFAULT false,
+    url_procesado character varying(255) COLLATE pg_catalog."default",
     CONSTRAINT videos_pkey PRIMARY KEY (id_video)
 );
 
