@@ -89,21 +89,34 @@ def register():
         return render_template('register.html')
 
     data = request.get_json()
-    nombre = data.get('nombre')
-    email = data.get('email')
-    password = data.get('password')
+    
+    # Validaciones básicas
+    required_fields = ['documento', 'nombre', 'email', 'password', 'fecha_nacimiento', 'sexo', 'id_tipo_usuario']
+    for field in required_fields:
+        if not data.get(field):
+            return jsonify({'error': f'El campo "{field}" es obligatorio'}), 400
 
-    if not nombre or not email or not password:
-        return jsonify({'error': 'Todos los campos son obligatorios'}), 400
-
-    # Verificar si el usuario ya existe
-    if Usuario.query.filter_by(email=email).first():
+    if Usuario.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'El correo ya está registrado'}), 400
 
-    # Hashear la contraseña antes de almacenarla
-    hashed_password = generate_password_hash(password)
+    hashed_password = generate_password_hash(data['password'])
 
-    nuevo_usuario = Usuario(nombre=nombre, email=email, password=hashed_password)
+    nuevo_usuario = Usuario(
+        documento=data['documento'],
+        nombre=data['nombre'],
+        email=data['email'],
+        password=hashed_password,
+        fecha_nacimiento=data['fecha_nacimiento'],
+        sexo=data['sexo'],
+        telefono=data.get('telefono'),
+        direccion=data.get('direccion'),
+        experiencia=data.get('experiencia'),
+        foto_url=data.get('foto_url'),
+        id_tipo_usuario=data['id_tipo_usuario'],
+        peso=data.get('peso'),
+        altura=data.get('altura')
+    )
+
     db.session.add(nuevo_usuario)
     db.session.commit()
 

@@ -2,118 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro - App</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<style>
-        body {
-            font-family: 'times new roman', cursive;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-
-        .card {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .form-label {
-            font-weight: bold;
-        }
-        .btn-success {
-            background-color: #f17d09;
-            color: rgb(242, 239, 236);
-            border: none;
-        }
-
-    </style>
+    <title>Registro de Usuario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="d-flex align-items-center justify-content-center vh-100">
-    <div class="card shadow p-4 rounded" style="max-width: 500px; width: 100%;">
-        <h2 class="text-center mb-4">Registro de Usuario</h2>
-        <form id="registerForm">
-            <!-- Campo Documento (común en ambas ramas) -->
-            <div class="mb-3">
-                <label for="documento" class="form-label">Documento</label>
-                <input type="text" id="documento" name="documento" class="form-control" required>
-            </div>
-            <!-- Campos añadidos en la rama main -->
-            <div class="mb-3">
-                <label for="nombre" class="form-label">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input type="email" id="email" name="email" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña</label>
-                <input type="password" id="password" name="password" class="form-control" required>
-            </div>
-            <!-- Campos comunes -->
-            <div class="mb-3">
-                <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
-                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="sexo" class="form-label">Sexo</label>
-                <select id="sexo" name="sexo" class="form-select" required>
-                    <option value="">Selecciona...</option>
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                </select>
-            </div>
-            <!-- Botón de registro y enlace para volver al login -->
-            <div class="d-flex gap-2 mt-3">
-                <button type="submit" class="btn btn-success flex-grow-1" id="registro">Registrarse</button>
-                <a href="/login" class="btn btn-outline-secondary">Volver al Login</a>
-            </div>
-        </form>
-        <p id="error-msg" class="text-danger text-center mt-3 d-none"></p>
-        <div class="mt-3 text-center">
-            <a href="/login" class="btn btn-outline-secondary">Volver al Login</a>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow-lg rounded-4">
+        <div class="card-body">
+            <h2 class="card-title mb-4 text-center">Registro de Usuario</h2>
+            <form id="registroForm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="documento" class="form-label">Documento</label>
+                        <input type="text" id="documento" name="documento" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Correo electrónico</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="fecha_nacimiento" class="form-label">Fecha de nacimiento</label>
+                        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="sexo" class="form-label">Sexo</label>
+                        <select id="sexo" name="sexo" class="form-select" required>
+                            <option value="">Selecciona...</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="tel" id="telefono" name="telefono" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" id="direccion" name="direccion" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="experiencia" class="form-label">Experiencia</label>
+                        <textarea id="experiencia" name="experiencia" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="foto_url" class="form-label">URL de Foto</label>
+                        <input type="url" id="foto_url" name="foto_url" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_tipo_usuario" class="form-label">Tipo de Usuario</label>
+                        <select id="id_tipo_usuario" name="id_tipo_usuario" class="form-select" required>
+                            <option value="">Selecciona...</option>
+                            <option value="1">Jugador</option>
+                            <option value="2">Entrenador</option>
+                            <option value="3">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="peso" class="form-label">Peso (kg)</label>
+                        <input type="number" step="0.1" id="peso" name="peso" class="form-control">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="altura" class="form-label">Altura (cm)</label>
+                        <input type="number" step="0.1" id="altura" name="altura" class="form-control">
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">Registrar</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('registerForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
+<!-- Script -->
+<script>
+document.getElementById('registroForm').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-            // Construimos el objeto con los datos del formulario
-            const formData = {
-                documento: document.getElementById('documento').value,
-                nombre: document.getElementById('nombre').value,
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value,
-                fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-                sexo: document.getElementById('sexo').value
-            };
+    const formData = {
+        documento: document.getElementById('documento').value,
+        nombre: document.getElementById('nombre').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+        sexo: document.getElementById('sexo').value,
+        telefono: document.getElementById('telefono').value || null,
+        direccion: document.getElementById('direccion').value || null,
+        experiencia: document.getElementById('experiencia').value || null,
+        foto_url: document.getElementById('foto_url').value || null,
+        id_tipo_usuario: document.getElementById('id_tipo_usuario').value || null,
+        peso: document.getElementById('peso').value || null,
+        altura: document.getElementById('altura').value || null
+    };
 
-            try {
-                // Realizamos la petición POST a la ruta correspondiente
-                const response = await fetch('/perfil', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+    fetch('/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error en el registro');
+        return response.json();
+    })
+    .then(data => {
+        alert('Registro exitoso');
+        // window.location.href = "/login";
+    })
+    .catch(error => {
+        console.error(error);
+        alert('Error al registrar usuario: ${error.message}');
+    });
+});
+</script>
 
-                const data = await response.json();
-
-                if (response.ok) {
-                    alert("Registro exitoso. ¡Inicia sesión!");
-                    window.location.href = '/login';
-                } else {
-                    document.getElementById('error-msg').textContent = data.error || "Error en el registro.";
-                    document.getElementById('error-msg').classList.remove('d-none');
-                }
-            } catch (error) {
-                console.error('Error al registrar el usuario:', error);
-                document.getElementById('error-msg').textContent = "Error de conexión.";
-                document.getElementById('error-msg').classList.remove('d-none');
-            }
-        });
-    </script>
 </body>
 </html>
