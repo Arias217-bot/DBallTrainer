@@ -3,21 +3,24 @@
 
 {% block head %}
 <style>
-    /* Estilos previos (mantener igual) */
     .cancha-container {
         position: relative;
         width: 100%;
-        padding-bottom: 75%;
+        padding-bottom: 45%;
         background-color: #8bc34a;
         border: 3px solid #333;
         margin-bottom: 15px;
         overflow: hidden;
+        box-sizing: border-box;
     }
     
     .cancha {
         position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
     }
     
     .red-line {
@@ -41,6 +44,9 @@
         color: white;
         font-weight: bold;
         font-size: 0.8rem;
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
     }
     
     /* Zonas (mantener igual) */
@@ -72,6 +78,7 @@
         transform: translate(-50%, -50%);
         z-index: 10;
         box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        box-sizing: border-box;
     }
     
     .rival-marker {
@@ -84,6 +91,10 @@
         height: 2px;
         transform-origin: left center;
         z-index: 5;
+        margin: 0;
+        padding: 0;
+        border: none;
+        box-sizing: border-box;
     }
     
     .accion-marker {
@@ -130,6 +141,54 @@
         margin-bottom: 0.2rem;
         font-size: 0.875rem;
     }
+
+    .letrero-paso {
+        position: absolute;
+        left: 50%;
+        top: -10px; /* ajusta esto según sea necesario */
+        transform: translate(-50%, -100%); /* sube la burbuja sobre el jugador */
+        background-color: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 6px 10px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        z-index: 25;
+        text-align: center;
+        min-width: 100px;
+        max-width: 140px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        white-space: normal;
+        word-wrap: break-word;
+        pointer-events: none;
+    }
+
+    .letrero-paso::after {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 8px 6px 0 6px;
+        border-style: solid;
+        border-color: rgba(0, 0, 0, 0.9) transparent transparent transparent;
+    }
+
+    .letrero-simbolo {
+        font-size: 1.3rem;
+        margin-bottom: 2px;
+        line-height: 1;
+    }
+
+    .letrero-texto {
+        font-size: 0.7rem;
+        line-height: 1.2;
+    }
+
+    .letrero-texto small {
+        font-size: 0.65rem;
+        opacity: 0.85;
+    }
+
 </style>
 {% endblock %}
 
@@ -164,15 +223,15 @@
                 </div>
                 <div class="collapse show" id="formCollapse">
                     <div class="card-body">
-                        <form id="jugadaForm" class="compact-form">
+                        <form id="jugadaForm" class="compact-form" method="POST" action="javascript:void(0);">
                             <input type="hidden" name="nombre_partido" value="{{ partido.nombre_partido }}">
                             
                             <div class="row g-2 mb-2">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <label class="form-label">Jugador</label>
                                     <input type="number" class="form-control form-control-sm jugador-input" min="1" max="99" required>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label">Zona</label>
                                     <select class="form-select form-select-sm zona-input">
                                         <option value="z1">Zona 1 (Defensa derecha)</option>
@@ -190,7 +249,21 @@
                                     </select>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label">Acción</label>
+                                    <label class="form-label">Tipo de Acción</label>
+                                    <select class="form-select form-select-sm tipo-accion-input">
+                                        <option value="saque">Saque</option>
+                                        <option value="recibo">Recibo</option>
+                                        <option value="pase">Pase</option>
+                                        <option value="remate">Remate</option>
+                                        <option value="bloqueo">Bloqueo</option>
+                                        <option value="defensa">Defensa</option>
+                                        <option value="contraataque">Contraataque</option>
+                                        <option value="libre">Libre</option>
+                                        <option value="toque">Toque</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Evaluación</label>
                                     <select class="form-select form-select-sm accion-input">
                                         <option value="++">Excelente (++)</option>
                                         <option value="+">Buena (+)</option>
@@ -208,7 +281,7 @@
                             
                             <div class="mb-2">
                                 <label class="form-label">Secuencia Generada</label>
-                                <textarea class="form-control form-control-sm secuencia-input" id="secuencia_jugada" name="secuencia_jugada" rows="2" readonly required></textarea>
+                                <textarea class="form-control form-control-sm secuencia-input" id="secuencia_jugada" name="secuencia_jugada" rows="2" required></textarea>
                             </div>
                             
                             <div class="row g-2 mb-2">
@@ -260,7 +333,9 @@
                                 <i class="bi bi-skip-forward-fill"></i>
                             </button>
                         </div>
-                        <!-- El botón "Reproducir Todas" se agregará automáticamente aquí -->
+                        <button id="reproducirTodasBtn" class="btn btn-sm btn-outline-light ms-2">
+                            <i class="bi bi-collection-play"></i> Reproducir Todas
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -324,538 +399,118 @@
             </div>
         </div>
 
-        <!-- En el div de tab-content, agregar el nuevo panel -->
+        <!-- Pestaña de Estadísticas -->
+
         <div class="tab-pane fade" id="estadisticas" role="tabpanel">
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    Informes Estadísticos
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+            Informes Estadísticos del Partido
+            </div>
+            <div class="card-body">
+
+            <!-- Panel de resumen general -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                <div class="card border-success">
+                    <div class="card-body text-center">
+                    <h6 class="card-title text-success">Promedio Éxitos</h6>
+                    <h3 id="promedio-exitos" class="display-6">--%</h3>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5>Rendimiento por Jugador</h5>
-                            <div class="table-responsive">
-                                <table class="table table-sm" id="tabla-rendimiento">
-                                    <thead>
-                                        <tr>
-                                            <th>Jugador</th>
-                                            <th>Excelente</th>
-                                            <th>Efectivo</th>
-                                            <th>Error</th>
-                                            <th>Total</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="cuerpo-rendimiento">
-                                        <!-- Datos se llenarán con JS -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Distribución de Zonas de Ataque</h5>
-                            <canvas id="grafico-zonas" height="250"></canvas>
-                        </div>
+                </div>
+                <div class="col-md-4">
+                <div class="card border-warning">
+                    <div class="card-body text-center">
+                    <h6 class="card-title text-warning">Promedio Normales</h6>
+                    <h3 id="promedio-normales" class="display-6">--%</h3>
                     </div>
-                    <div class="row mt-4">
-                        <div class="col-md-6">
-                            <h5>Efectividad de Ataques</h5>
-                            <canvas id="grafico-efectividad" height="250"></canvas>
-                        </div>
-                        <div class="col-md-6">
-                            <h5>Comparativa de Equipos</h5>
-                            <canvas id="grafico-equipos" height="250"></canvas>
-                        </div>
+                </div>
+                </div>
+                <div class="col-md-4">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                    <h6 class="card-title text-danger">Errores</h6>
+                    <h3 id="total-errores" class="display-6">--%</h3>
                     </div>
+                </div>
                 </div>
             </div>
+
+            <!-- Gráficos estadísticos -->
+            <div class="row g-4">
+                <div class="col-md-6">
+                <h5 class="mb-1">📈 Zonas donde más se ataca</h5>
+                <p class="text-muted small">Cantidad de jugadas dirigidas a cada zona</p>
+                <canvas id="grafico-zonas" height="200"></canvas>
+                </div>
+
+                <div class="col-md-6">
+                <h5 class="mb-1">🎯 Efectividad por Tipo de Acción</h5>
+                <p class="text-muted small">Comparación de jugadas exitosas, normales y fallidas</p>
+                <canvas id="grafico-tipos-accion" height="200"></canvas>
+                </div>
+
+                <div class="col-md-6">
+                <h5 class="mb-1">🤝 Comparativa de Equipos</h5>
+                <p class="text-muted small">Total de acciones positivas por equipo</p>
+                <canvas id="grafico-equipos" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabla resumen -->
+            <div class="mt-5">
+                <h5 class="mb-2">📊 Resumen por Tipo de Acción</h5>
+                <div class="table-responsive">
+                <table class="table table-bordered table-sm text-center">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Acción</th>
+                        <th>Éxito</th>
+                        <th>Normal</th>
+                        <th>Error</th>
+                        <th>Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="tabla-resumen-acciones">
+                    <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            <!-- Tabla rendimiento por jugador -->
+            <div class="mt-5">
+                <h5 class="mb-2">👤 Rendimiento por Jugador</h5>
+                <div class="table-responsive">
+                <table class="table table-bordered table-sm text-center">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Excelente</th>
+                        <th>Efectivo</th>
+                        <th>Error</th>
+                        <th>Total</th>
+                    </tr>
+                    </thead>
+                    <tbody id="cuerpo-rendimiento">
+                    <!-- Se llena con JS -->
+                    </tbody>
+                </table>
+                </div>
+            </div>
+
+            </div>
         </div>
-    </div>
-</div>
+        </div>
+
+            </div>
+        </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/visualizacion.js') }}"></script>
+
 <script>
-// Mapa de zonas de voleibol (nuestro equipo abajo, rival arriba)
-const zonas = {
-    'z1': { x: 16.66, y: 87.5, nombre: 'Z1', clase: 'zona-1' },
-    'z2': { x: 50, y: 87.5, nombre: 'Z2', clase: 'zona-2' },
-    'z3': { x: 83.33, y: 87.5, nombre: 'Z3', clase: 'zona-3' },
-    'z4': { x: 16.66, y: 62.5, nombre: 'Z4', clase: 'zona-4' },
-    'z5': { x: 50, y: 62.5, nombre: 'Z5', clase: 'zona-5' },
-    'z6': { x: 83.33, y: 62.5, nombre: 'Z6', clase: 'zona-6' },
-    'z7': { x: 16.66, y: 12.5, nombre: 'Z7', clase: 'zona-7' },
-    'z8': { x: 50, y: 12.5, nombre: 'Z8', clase: 'zona-8' },
-    'z9': { x: 83.33, y: 12.5, nombre: 'Z9', clase: 'zona-9' },
-    'z10': { x: 16.66, y: 37.5, nombre: 'Z10', clase: 'zona-10' },
-    'z11': { x: 50, y: 37.5, nombre: 'Z11', clase: 'zona-11' },
-    'z12': { x: 83.33, y: 37.5, nombre: 'Z12', clase: 'zona-12' }
-};
-
-// Variables de estado para la reproducción
-let jugadaActual = null;
-let pasoActual = 0;
-let intervaloReproduccion = null;
-let pasosProcesados = [];
-
-// Variables para la reproducción automática
-let reproduccionAutomaticaActiva = false;
-let indiceJugadaActual = 0;
-let intervaloReproduccionAutomatica = null;
-let todasLasJugadas = [];
-
-// Inicialización del campo con todas las zonas
-function inicializarCancha() {
-    const cancha = document.getElementById('cancha');
-    cancha.innerHTML = '<div class="red-line"></div>';
-    
-    Object.entries(zonas).forEach(([key, zona]) => {
-        const divZona = document.createElement('div');
-        divZona.className = `zona ${zona.clase}`;
-        divZona.textContent = zona.nombre;
-        cancha.appendChild(divZona);
-    });
-}
-
-// Dibujar línea entre dos puntos
-function dibujarLinea(inicio, fin, clase = '') {
-    const linea = document.createElement('div');
-    linea.className = `jugada-linea ${clase}`;
-    
-    const dx = fin.x - inicio.x;
-    const dy = fin.y - inicio.y;
-    const length = Math.sqrt(dx * dx + dy * dy);
-    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-    
-    Object.assign(linea.style, {
-        width: `${length}%`,
-        left: `${inicio.x}%`,
-        top: `${inicio.y}%`,
-        transform: `rotate(${angle}deg)`
-    });
-    
-    document.getElementById('cancha').appendChild(linea);
-    return linea;
-}
-
-// Mostrar un marcador de acción (saque, remate, etc.)
-function mostrarAccion(posicion, accion) {
-    const marker = document.createElement('div');
-    marker.className = 'accion-marker';
-    marker.style.left = `${posicion.x}%`;
-    marker.style.top = `${posicion.y}%`;
-    
-    let simbolo = '';
-    let clase = '';
-    
-    switch(accion) {
-        case '++': 
-            simbolo = '++'; 
-            clase = 'excelente';
-            break;
-        case '+': 
-            simbolo = '+'; 
-            clase = 'buena';
-            break;
-        case '=': 
-            simbolo = '='; 
-            clase = 'normal';
-            break;
-        case '-': 
-            simbolo = '-'; 
-            clase = 'mala';
-            break;
-        case '--': 
-            simbolo = '--'; 
-            clase = 'error';
-            break;
-        default: 
-            simbolo = accion;
-    }
-    
-    marker.textContent = simbolo;
-    marker.classList.add(clase);
-    document.getElementById('cancha').appendChild(marker);
-    return marker;
-}
-
-// Cargar una jugada para visualización
-function cargarJugada(secuencia, datosProcesados) {
-    // Limpiar cancha
-    const cancha = document.getElementById('cancha');
-    cancha.innerHTML = '<div class="red-line"></div>';
-    inicializarCancha();
-    
-    // Resetear estado de reproducción
-    jugadaActual = null;
-    pasoActual = 0;
-    pasosProcesados = [];
-    clearInterval(intervaloReproduccion);
-    
-    // Actualizar controles
-    document.getElementById('currentStep').textContent = '0/0';
-    document.getElementById('jugadaProgress').style.width = '0%';
-    
-    if (!secuencia) {
-        document.getElementById('jugadaInfo').innerHTML = '<p class="text-muted small">Selecciona una jugada del historial para visualizarla</p>';
-        return;
-    }
-    
-    // Intentar usar datos procesados si están disponibles
-    if (datosProcesados && datosProcesados.pasos) {
-        pasosProcesados = datosProcesados.pasos;
-        jugadaActual = secuencia;
-        document.getElementById('currentStep').textContent = `0/${pasosProcesados.length}`;
-        document.getElementById('jugadaInfo').innerHTML = `
-            <p class="mb-1"><strong>Jugada:</strong> ${secuencia}</p>
-            <p class="small text-muted">${pasosProcesados.length} pasos registrados</p>
-        `;
-        mostrarPaso(0);
-        return;
-    }
-    
-    // Procesamiento alternativo si no hay datos procesados
-    const pasos = secuencia.split(',');
-    let pasosValidos = [];
-    
-    pasos.forEach((paso, index) => {
-        const match = paso.match(/j(\d+)(z\d+|[\+\-\=]{1,2})/);
-        if (!match) return;
-        
-        const jugador = match[1];
-        const accion = match[2];
-        
-        if (accion.startsWith('z') && zonas[accion]) {
-            pasosValidos.push({
-                tipo: 'zona',
-                jugador: jugador,
-                zona: accion,
-                posicion: zonas[accion]
-            });
-        } else if (['++', '+', '=', '-', '--'].includes(accion)) {
-            pasosValidos.push({
-                tipo: 'accion',
-                jugador: jugador,
-                accion: accion
-            });
-        }
-    });
-    
-    pasosProcesados = pasosValidos;
-    jugadaActual = secuencia;
-    document.getElementById('currentStep').textContent = `0/${pasosProcesados.length}`;
-    document.getElementById('jugadaInfo').innerHTML = `
-        <p class="mb-1"><strong>Jugada:</strong> ${secuencia}</p>
-        <p class="small text-muted">${pasosProcesados.length} pasos registrados</p>
-    `;
-    mostrarPaso(0);
-}
-
-// Mostrar un paso específico de la jugada
-function mostrarPaso(indice) {
-    if (!jugadaActual || indice < 0 || indice >= pasosProcesados.length) return;
-    
-    // Limpiar marcadores anteriores (excepto las zonas)
-    document.querySelectorAll('.jugador-marker, .jugada-linea, .accion-marker').forEach(el => el.remove());
-    
-    let prevPos = null;
-    
-    // Mostrar todos los pasos hasta el actual
-    for (let i = 0; i <= indice; i++) {
-        const paso = pasosProcesados[i];
-        
-        if (paso.tipo === 'zona') {
-            const marker = document.createElement('div');
-            marker.className = `jugador-marker ${paso.zona.startsWith('z7') ? 'rival-marker' : ''}`;
-            marker.style.left = `${paso.posicion.x}%`;
-            marker.style.top = `${paso.posicion.y}%`;
-            marker.style.width = '60px';
-            marker.style.height = '60px';
-            marker.style.fontSize = '1.2rem';
-            marker.textContent = paso.jugador;
-            document.getElementById('cancha').appendChild(marker);
-            
-            if (prevPos) {
-                dibujarLinea(prevPos, paso.posicion, i === indice ? 'actual' : '');
-            }
-            prevPos = paso.posicion;
-        } else if (paso.tipo === 'accion' && prevPos) {
-            mostrarAccion(prevPos, paso.accion);
-        }
-    }
-    
-    pasoActual = indice;
-    document.getElementById('currentStep').textContent = `${pasoActual + 1}/${pasosProcesados.length}`;
-    document.getElementById('jugadaProgress').style.width = `${(pasoActual + 1) / pasosProcesados.length * 100}%`;
-}
-
-// Reproducir la jugada automáticamente
-function reproducirJugada() {
-    if (!jugadaActual || pasosProcesados.length === 0) return;
-    pausarJugada();
-    
-    if (pasoActual >= pasosProcesados.length - 1 && reproduccionAutomaticaActiva) {
-        clearInterval(intervaloReproduccion);
-        indiceJugadaActual++;
-        reproducirSiguienteJugadaAutomatica();
-        return;
-    }
-    
-    if (pasoActual >= pasosProcesados.length - 1) {
-        pasoActual = -1;
-    }
-    
-    intervaloReproduccion = setInterval(() => {
-        pasoActual++;
-        mostrarPaso(pasoActual);
-        
-        if (pasoActual >= pasosProcesados.length - 1) {
-            if (reproduccionAutomaticaActiva) {
-                clearInterval(intervaloReproduccion);
-                indiceJugadaActual++;
-                reproducirSiguienteJugadaAutomatica();
-            } else {
-                pausarJugada();
-            }
-        }
-    }, 1000);
-}
-
-function pausarJugada() {
-    clearInterval(intervaloReproduccion);
-    intervaloReproduccion = null;
-    if (reproduccionAutomaticaActiva) {
-        clearTimeout(intervaloReproduccionAutomatica);
-    }
-}
-
-function prepararReproduccionAutomatica() {
-    todasLasJugadas = Array.from(document.querySelectorAll('.jugada-item'));
-    indiceJugadaActual = 0;
-    reproduccionAutomaticaActiva = true;
-    if (todasLasJugadas.length > 0) {
-        reproducirSiguienteJugadaAutomatica();
-    }
-}
-
-function reproducirSiguienteJugadaAutomatica() {
-    if (indiceJugadaActual >= todasLasJugadas.length) {
-        finalizarReproduccionAutomatica();
-        return;
-    }
-    
-    const jugada = todasLasJugadas[indiceJugadaActual];
-    todasLasJugadas.forEach(j => j.classList.remove('table-primary'));
-    jugada.classList.add('table-primary');
-    jugada.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    cargarJugada(jugada.dataset.secuencia, jugada.dataset.procesada ? JSON.parse(jugada.dataset.procesada) : null);
-    setTimeout(reproducirJugada, 500);
-}
-
-function finalizarReproduccionAutomatica() {
-    clearTimeout(intervaloReproduccionAutomatica);
-    reproduccionAutomaticaActiva = false;
-    todasLasJugadas.forEach(j => j.classList.remove('table-primary'));
-    document.getElementById('reproducirTodasBtn').innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
-}
-
-function toggleReproduccionAutomatica() {
-    const boton = document.getElementById('reproducirTodasBtn');
-    if (reproduccionAutomaticaActiva) {
-        finalizarReproduccionAutomatica();
-        boton.innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
-    } else {
-        prepararReproduccionAutomatica();
-        boton.innerHTML = '<i class="bi bi-stop-fill"></i> Detener Reproducción';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    inicializarCancha();
-
-    // Formulario interactivo
-    document.querySelector('.agregar-paso').addEventListener('click', function() {
-        const jugador = document.querySelector('.jugador-input').value;
-        const zona = document.querySelector('.zona-input').value;
-        const accion = document.querySelector('.accion-input').value;
-        
-        if (!jugador) {
-            alert('Por favor ingresa un número de jugador');
-            return;
-        }
-        
-        const secuencia = document.getElementById('secuencia_jugada');
-        const current = secuencia.value ? secuencia.value.split(',') : [];
-        current.push(`j${jugador}${zona}`);
-        if (!zona.startsWith('z7') && !zona.startsWith('z8') && !zona.startsWith('z9') && 
-            !zona.startsWith('z10') && !zona.startsWith('z11') && !zona.startsWith('z12')) {
-            current.push(`j${jugador}${accion}`);
-        }
-        secuencia.value = current.join(',');
-    });
-
-    document.getElementById('jugadaForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        fetch('/jugadas/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(Object.fromEntries(new FormData(this)))
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                alert('Error: ' + data.error);
-            } else {
-                location.reload();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error al guardar la jugada');
-        });
-    });
-
-    document.querySelectorAll('.jugada-item').forEach(item => {
-        item.addEventListener('click', function(e) {
-            if (e.target.classList.contains('borrar-jugada')) return;
-            cargarJugada(this.dataset.secuencia, this.dataset.procesada ? JSON.parse(this.dataset.procesada) : null);
-            bootstrap.Tab.getInstance(document.querySelector('#visualizacion-tab')).show();
-        });
-        item.querySelector('.borrar-jugada').addEventListener('click', function(e) {
-            e.stopPropagation();
-            if (confirm('¿Estás seguro de que deseas borrar esta jugada?')) {
-                fetch(`/jugadas/${this.closest('.jugada-item').dataset.id}`, { method: 'DELETE' })
-                .then(response => {
-                    if (response.ok) location.reload(); else alert('Error al borrar la jugada');
-                })
-                .catch(err => { console.error('Error:', err); alert('Error al borrar la jugada'); });
-            }
-        });
-    });
-
-    document.getElementById('filtroJugadas').addEventListener('input', function() {
-        const filtro = this.value.toLowerCase();
-        document.querySelectorAll('.jugada-item').forEach(item => {
-            item.style.display = item.textContent.toLowerCase().includes(filtro) ? '' : 'none';
-        });
-    });
-
-    // Controles de reproducción
-    document.getElementById('reproducirJugada').addEventListener('click', reproducirJugada);
-    document.getElementById('pausarJugada').addEventListener('click', pausarJugada);
-    document.getElementById('reiniciarJugada').addEventListener('click', () => { pasoActual = -1; mostrarPaso(0); });
-    document.getElementById('avanzarJugada').addEventListener('click', () => { if (pasoActual < pasosProcesados.length - 1) mostrarPaso(pasoActual + 1); });
-    document.getElementById('retrocederJugada').addEventListener('click', () => { if (pasoActual > 0) mostrarPaso(pasoActual - 1); });
-
-    // Botón para reproducir todas las jugadas
-    const reproducirTodasBtn = document.createElement('button');
-    reproducirTodasBtn.id = 'reproducirTodasBtn';
-    reproducirTodasBtn.className = 'btn btn-sm btn-outline-light ms-2';
-    reproducirTodasBtn.innerHTML = '<i class="bi bi-collection-play"></i> Reproducir Todas';
-    reproducirTodasBtn.addEventListener('click', toggleReproduccionAutomatica);
-    document.querySelector('#visualizacion .card-header').appendChild(reproducirTodasBtn);
-
-    document.getElementById('estadisticas-tab').addEventListener('click', function() {
-    // Obtener el nombre del partido de la URL o de otro lugar seguro
-    const nombrePartido = obtenerNombrePartidoActual();
-    if (nombrePartido) {
-        cargarEstadisticas(nombrePartido);
-    } else {
-        console.error('No se pudo determinar el partido actual');
-    }
-});
-
-// Función auxiliar para obtener el nombre del partido
-function obtenerNombrePartidoActual() {
-    // Opción 1: Si tienes el partido en el contexto de la plantilla
-    try {
-        return "{{ partido.nombre_partido }}";  // Para Jinja2
-        // O return partido.nombre_partido;  // Si está en el contexto JS
-    } catch (e) {}
-    
-    // Opción 2: Extraer de la URL
-    const path = window.location.pathname.split('/');
-    if (path.length >= 3) {
-        return decodeURIComponent(path[path.length - 1]).replace('-', ' ');
-    }
-    
-    // Opción 3: Usar un selector del DOM si está visible en la página
-    const titulo = document.querySelector('h2.text-center');
-    if (titulo) {
-        return titulo.textContent.replace('Jugadas: ', '');
-    }
-    
-    return null;
-}
-});
-
-// Estadísticas: carga y visualización
-function cargarEstadisticas(nombrePartido) {
-    fetch(`/estadisticas/${encodeURIComponent(nombrePartido)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) { alert(data.error); return; }
-            mostrarRendimientoJugadores(data.rendimiento_jugadores);
-            mostrarDistribucionZonas(data.distribucion_zonas);
-            mostrarEfectividadAtaques(data.efectividad_ataques);
-            mostrarComparativaEquipos(data.comparativa_equipos);
-        })
-        .catch(error => {
-            console.error('Error al cargar estadísticas:', error);
-            alert('Error al cargar estadísticas');
-        });
-}
-
-function mostrarRendimientoJugadores(datos) {
-    const cuerpoTabla = document.getElementById('cuerpo-rendimiento');
-    cuerpoTabla.innerHTML = '';
-    for (const [jugador, stats] of Object.entries(datos)) {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td>Jugador ${jugador}</td>
-            <td>${stats.porcentaje_excelente?.toFixed(1) || 0}%</td>
-            <td>${stats.porcentaje_efectivo?.toFixed(1) || 0}%</td>
-            <td>${stats.porcentaje_error?.toFixed(1) || 0}%</td>
-            <td>${stats.total_acciones}</td>
-        `;
-        cuerpoTabla.appendChild(fila);
-    }
-}
-
-function mostrarDistribucionZonas(datos) {
-    const ctx = document.getElementById('grafico-zonas').getContext('2d');
-    if (window.graficoZonas) window.graficoZonas.destroy();
-    const zonas = Object.keys(datos).sort();
-    const valores = zonas.map(z => datos[z]);
-    window.graficoZonas = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: zonas.map(z => `Zona ${z}`),
-            datasets: [{ label: 'Ataques por zona', data: valores, backgroundColor: 'rgba(54, 162, 235, 0.7)', borderColor: 'rgba(54, 162, 235, 1)', borderWidth: 1 }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true, title: { display: true, text: 'Cantidad de ataques' } } } }
-    });
-}
-
-function mostrarEfectividadAtaques(datos) {
-    const ctx = document.getElementById('grafico-efectividad').getContext('2d');
-    if (window.graficoEfectividad) window.graficoEfectividad.destroy();
-    window.graficoEfectividad = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: ['Éxitosos', 'Normales', 'Fallados'], datasets: [{ data: [datos.exitosos||0, (datos.total-datos.exitosos-datos.fallados)||0, datos.fallados||0], backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(255, 99, 132, 0.7)'], borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(255, 99, 132, 1)'], borderWidth: 1 }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'bottom'}, title: { display: true, text: `Efectividad: ${datos.porcentaje_exitoso?.toFixed(1)||0}%`} } }
-    });
-}
-
-function mostrarComparativaEquipos(datos) {
-    const ctx = document.getElementById('grafico-equipos').getContext('2d');
-    if (window.graficoEquipos) window.graficoEquipos.destroy();
-    window.graficoEquipos = new Chart(ctx, {
-        type: 'pie',
-        data: { labels: ['Nuestro equipo','Equipo rival'], datasets: [{ data: [datos.nuestro||0, datos.rival||0], backgroundColor: ['rgba(54, 162, 235, 0.7)','rgba(255, 99, 132, 0.7)'], borderColor: ['rgba(54, 162, 235, 1)','rgba(255, 99, 132, 1)'], borderWidth: 1 }] },
-        options: { responsive: true, plugins: { legend: { position: 'bottom'}, title: { display: true, text: 'Comparativa de efectividad' } } }
-    });
-}
-
+  const nombrePartido = "{{ partido.nombre_partido | escape }}";
 </script>
 
 {% endblock %}
