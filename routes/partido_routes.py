@@ -73,10 +73,16 @@ def detalle_partido(nombre_torneo, nombre_partido):
     partido = Partido.query.filter_by(nombre_partido=nombre_partido).first_or_404()
     jugadas = Jugadas.query.filter_by(nombre_partido=nombre_partido).order_by(Jugadas._tiempo_inicio).all()
     
+    resumen_general = {
+        'total_jugadas': len(jugadas),
+        'acciones_totales': sum(len(j.datos_procesados.get('pasos', [])) for j in jugadas if j.datos_procesados)
+    }
+
     return render_template('detalle_partido.html', 
                          partido=partido, 
                          jugadas=jugadas,
                          torneo_nombre=nombre_torneo,
+                         resumen_general=resumen_general,
                          calcular_duracion=calcular_duracion)
 
 @partido_bp.route('/procesar-jugada', methods=['POST'])
@@ -146,6 +152,7 @@ def create_jugada():
 
 @partido_bp.route('/<nombre_partido>/estadisticas', methods=['GET'])
 def obtener_estadisticas(nombre_partido):
+    nombre_partido = nombre_partido.replace('-', ' ')
     """Obtiene todas las estadísticas del partido."""
     # Obtener todas las jugadas del partido
     jugadas = Jugadas.query.filter_by(nombre_partido=nombre_partido).all()

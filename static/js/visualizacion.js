@@ -48,14 +48,10 @@ function dibujarLinea(inicio, fin, clase = '') {
     const endX = fin.centerX;
     const endY = fin.centerY;
     
-    // Calcular diferencias
-    const dx = endX - startX;
-    const dy = endY - startY;
-    
     // Calcular en píxeles
     const canchaContainer = document.querySelector('.cancha-container');
     const containerWidth = canchaContainer.offsetWidth;
-    const containerHeight = containerWidth * 0.45; // Relación 45% definida en CSS
+    const containerHeight = containerWidth * 0.45;
     
     const startXPx = (startX / 100) * containerWidth;
     const startYPx = (startY / 100) * containerHeight;
@@ -126,13 +122,11 @@ function cargarJugada(secuencia, datosProcesados) {
     }
     
     if (datosProcesados?.pasos) {
-        // Asegurar que cada paso tenga su posición
         pasosProcesados = datosProcesados.pasos.map(paso => ({
             ...paso,
-            posicion: zonas[paso.zona] || { centerX: 50, centerY: 50 } // Valor por defecto si no encuentra la zona
+            posicion: zonas[paso.zona] || { centerX: 50, centerY: 50 }
         }));
     } else {
-        // Procesamiento para secuencias sin datos procesados
         pasosProcesados = secuencia.split(',')
             .map(paso => paso.match(/j(\d+)(z\d+)(\w+)([\+\-\=]{1,2})/))
             .filter(match => match)
@@ -142,7 +136,7 @@ function cargarJugada(secuencia, datosProcesados) {
                 zona: match[2],
                 tipoAccion: match[3],
                 evaluacion: match[4],
-                posicion: zonas[match[2]] || { centerX: 50, centerY: 50 } // Valor por defecto
+                posicion: zonas[match[2]] || { centerX: 50, centerY: 50 }
             }));
     }
     
@@ -159,7 +153,6 @@ function cargarJugada(secuencia, datosProcesados) {
 function mostrarPaso(indice) {
     if (!jugadaActual || indice < 0 || indice >= pasosProcesados.length) return;
     
-    // Limpiar elementos anteriores
     document.querySelectorAll('.jugador-marker, .jugada-linea, .letrero-paso').forEach(el => el.remove());
     
     let prevPos = null;
@@ -168,7 +161,6 @@ function mostrarPaso(indice) {
         const paso = pasosProcesados[i];
         
         if (paso.tipo === 'accion_completa') {
-            // Marcador del jugador
             const marker = document.createElement('div');
             marker.className = `jugador-marker ${paso.zona.startsWith('z7') ? 'rival-marker' : ''}`;
             Object.assign(marker.style, {
@@ -182,12 +174,10 @@ function mostrarPaso(indice) {
             marker.textContent = paso.jugador;
             document.getElementById('cancha').appendChild(marker);
             
-            // Línea de trayectoria
             if (prevPos) {
                 dibujarLinea(prevPos, paso.posicion);
             }
             
-            // Letrero solo para el paso actual
             if (i === indice) {
                 const iconos = {
                     saque: '⚽', recibo: '✋', pase: '➡', remate: '⚡',
@@ -232,7 +222,6 @@ function mostrarPaso(indice) {
         }
     }
     
-    // Actualizar controles
     pasoActual = indice;
     document.getElementById('currentStep').textContent = `${pasoActual + 1}/${pasosProcesados.length}`;
     document.getElementById('jugadaProgress').style.width = `${(pasoActual + 1) / pasosProcesados.length * 100}%`;
@@ -318,6 +307,284 @@ function toggleReproduccionAutomatica() {
     }
 }
 
+// ==================== ESTADÍSTICAS MEJORADAS ====================
+
+// Función principal para mostrar estadísticas
+function mostrarEstadisticas(data) {
+    if (!data) {
+        console.error('No se recibieron datos de estadísticas');
+        return;
+    }
+
+    // Actualizar resumen general
+    actualizarResumenGeneral(data.resumen_general || {});
+
+    // Gráfico de distribución de zonas
+    crearGraficoZonas(data.distribucion_zonas || {});
+
+    // Gráfico de efectividad por tipo de acción
+    crearGraficoEfectividad(data.efectividad_por_tipo || {});
+
+    // Gráfico comparativo de equipos
+    crearGraficoEquipos(data.comparativa_equipos || {});
+
+    // Tabla de resumen por tipo de acción
+    llenarTablaAcciones(data.efectividad_por_tipo || {});
+
+    // Tabla de rendimiento por jugador
+    llenarTablaJugadores(data.rendimiento_jugadores || {});
+}
+
+function actualizarResumenGeneral(resumen) {
+    document.getElementById('total-acciones').textContent = resumen.acciones_totales || '--';
+    document.getElementById('porcentaje-exitos').textContent = resumen.porcentaje_efectivo?.toFixed(1) || '--';
+    document.getElementById('porcentaje-normales').textContent = resumen.porcentaje_normal?.toFixed(1) || '--';
+    document.getElementById('porcentaje-errores').textContent = resumen.porcentaje_error?.toFixed(1) || '--';
+    
+    document.getElementById('excelentes-count').textContent = resumen.excelentes || '--';
+    document.getElementById('buenas-count').textContent = resumen.buenas || '--';
+    document.getElementById('normales-count').textContent = resumen.normales || '--';
+    document.getElementById('errores-count').textContent = resumen.errores || '--';
+    document.getElementById('malas-count').textContent = resumen.malas || '--';
+}
+
+function crearGraficoZonas(datosZonas) {
+    const zonasOrdenadas = Object.entries(datosZonas)
+        .sort((a, b) => b[1] - a[1]);
+    
+    const labels = zonasOrdenadas.map(([zona]) => `Zona ${zona.substring(1)}`);
+    const data = zonasOrdenadas.map(([_, count]) => count);
+    
+    // Crear tabla de zonas
+    const tablaZonas = document.getElementById('tabla-zonas');
+    tablaZonas.innerHTML = `
+        <div class="d-flex flex-wrap gap-2 justify-content-center">
+            ${zonasOrdenadas.map(([zona, count]) => `
+                <span class="badge bg-primary">
+                    ${zona}: ${count} acción${count !== 1 ? 'es' : ''}
+                </span>
+            `).join('')}
+        </div>
+    `;
+    
+    // Crear gráfico
+    crearGrafico('grafico-zonas', 'bar', labels, data, 'Distribución por Zonas');
+}
+
+function crearGraficoEfectividad(datosEfectividad) {
+    const tipos = Object.keys(datosEfectividad);
+    const exitosos = tipos.map(t => datosEfectividad[t].exitosos || 0);
+    const normales = tipos.map(t => (datosEfectividad[t].normales || 0));
+    const fallados = tipos.map(t => (datosEfectividad[t].fallados || 0));
+    
+    const ctx = document.getElementById('grafico-tipos-accion').getContext('2d');
+    if (window.graficoTiposAccion) window.graficoTiposAccion.destroy();
+    
+    window.graficoTiposAccion = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: tipos.map(t => t.charAt(0).toUpperCase() + t.slice(1)),
+            datasets: [
+                { 
+                    label: 'Excelentes', 
+                    data: exitosos, 
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                },
+                { 
+                    label: 'Normales', 
+                    data: normales, 
+                    backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                },
+                { 
+                    label: 'Fallados', 
+                    data: fallados, 
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: { 
+                y: { beginAtZero: true, stacked: false }, 
+                x: { stacked: false } 
+            },
+            plugins: { 
+                title: { display: true, text: 'Efectividad por Tipo de Acción' },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const tipo = tipos[context.dataIndex];
+                            const datos = datosEfectividad[tipo];
+                            const total = datos.total || 1;
+                            const porcentaje = (context.dataset.data[context.dataIndex] / total * 100).toFixed(1);
+                            return `Efectividad: ${porcentaje}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function crearGraficoEquipos(datosEquipos) {
+    const ctx = document.getElementById('grafico-equipos').getContext('2d');
+    
+    // Crear tabla comparativa
+    const detalleEquipos = document.getElementById('detalle-equipos');
+    detalleEquipos.innerHTML = `
+        <div class="row text-center">
+            <div class="col-md-6">
+                <h6>Nuestro Equipo</h6>
+                <p>Efectividad: ${datosEquipos.nuestro?.porcentaje_efectivo?.toFixed(1) || 0}%</p>
+                <p>Excelentes: ${datosEquipos.nuestro?.excelentes || 0}</p>
+            </div>
+            <div class="col-md-6">
+                <h6>Equipo Rival</h6>
+                <p>Efectividad: ${datosEquipos.rival?.porcentaje_efectivo?.toFixed(1) || 0}%</p>
+                <p>Errores: ${datosEquipos.rival?.errores || 0}</p>
+            </div>
+        </div>
+    `;
+    
+    if (window.graficoEquipos) window.graficoEquipos.destroy();
+    
+    window.graficoEquipos = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Nuestro equipo', 'Equipo rival'],
+            datasets: [{
+                data: [
+                    datosEquipos.nuestro?.total || 0, 
+                    datosEquipos.rival?.total || 0
+                ],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Acciones por Equipo' },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: function(context) {
+                            const equipo = context.label === 'Nuestro equipo' ? 'nuestro' : 'rival';
+                            const datos = datosEquipos[equipo] || {};
+                            return `Efectividad: ${datos.porcentaje_efectivo?.toFixed(1) || 0}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function llenarTablaAcciones(datosAcciones) {
+    const tabla = document.getElementById('tabla-resumen-acciones');
+    tabla.innerHTML = Object.entries(datosAcciones)
+        .map(([tipo, datos]) => {
+            const total = datos.total || 1;
+            const efectividad = ((datos.exitosos || 0) / total * 100).toFixed(1);
+            
+            return `
+                <tr>
+                    <td class="text-start">${tipo.charAt(0).toUpperCase() + tipo.slice(1)}</td>
+                    <td>${datos.exitosos || 0}</td>
+                    <td>${(datos.buenas || 0)}</td>
+                    <td>${datos.normales || 0}</td>
+                    <td>${(datos.malas || 0)}</td>
+                    <td>${datos.fallados || 0}</td>
+                    <td>${total}</td>
+                    <td>
+                        <span class="badge ${efectividad >= 70 ? 'bg-success' : 
+                            efectividad >= 40 ? 'bg-warning' : 'bg-danger'}">
+                            ${efectividad}%
+                        </span>
+                    </td>
+                </tr>
+            `;
+        })
+        .join('');
+}
+
+function llenarTablaJugadores(datosJugadores) {
+    const tabla = document.getElementById('cuerpo-rendimiento');
+    
+    const jugadoresOrdenados = Object.entries(datosJugadores)
+        .sort(([numA], [numB]) => parseInt(numA) - parseInt(numB));
+    
+    tabla.innerHTML = jugadoresOrdenados
+        .map(([numero, datos]) => {
+            const total = datos.total_acciones || 1;
+            const efectividad = datos.porcentaje_efectivo?.toFixed(1) || 
+                (((datos.excelentes || 0) + (datos.buenas || 0)) / total * 100).toFixed(1);
+            
+            return `
+                <tr>
+                    <td class="text-start">Jugador ${numero}</td>
+                    <td>${datos.excelentes || 0}</td>
+                    <td>${datos.buenas || 0}</td>
+                    <td>${datos.normales || 0}</td>
+                    <td>${datos.malas || 0}</td>
+                    <td>${datos.errores || 0}</td>
+                    <td>${total}</td>
+                    <td>
+                        <span class="badge ${efectividad >= 70 ? 'bg-success' : 
+                            efectividad >= 40 ? 'bg-warning' : 'bg-danger'}">
+                            ${efectividad}%
+                        </span>
+                    </td>
+                </tr>
+            `;
+        })
+        .join('');
+}
+
+// Función genérica para crear gráficos
+function crearGrafico(id, tipo, labels, data, titulo) {
+    const ctx = document.getElementById(id).getContext('2d');
+    if (window[`grafico${id}`]) window[`grafico${id}`].destroy();
+    
+    window[`grafico${id}`] = new Chart(ctx, {
+        type: tipo,
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: tipo === 'pie' || tipo === 'doughnut' ? 
+                    ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)'] : 
+                    ['rgba(54, 162, 235, 0.7)'],
+                borderColor: tipo === 'pie' || tipo === 'doughnut' ? 
+                    ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'] : 
+                    ['rgba(54, 162, 235, 1)'],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: tipo === 'pie' || tipo === 'doughnut' ? 'bottom' : 'top' },
+                title: { display: !!titulo, text: titulo }
+            },
+            scales: tipo !== 'pie' && tipo !== 'doughnut' ? { y: { beginAtZero: true } } : undefined
+        }
+    });
+}
+
 // Eventos del DOM
 document.addEventListener('DOMContentLoaded', () => {
     inicializarCancha();
@@ -397,25 +664,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('retrocederJugada').addEventListener('click', () => { if (pasoActual > 0) mostrarPaso(pasoActual - 1); });
     document.getElementById('reproducirTodasBtn').addEventListener('click', toggleReproduccionAutomatica);
 
-    const nombrePartido = decodeURIComponent(window.location.pathname.split('/').pop()).replace(/-/g, ' ');
-
     // Estadísticas
     document.getElementById('estadisticas-tab').addEventListener('click', function() {
-        if (typeof nombrePartido === 'undefined' || !nombrePartido) {
-            console.error('Nombre del partido no definido');
+        // Obtener el nombre del partido de manera segura
+        const nombrePartido = document.getElementById('partido-data')?.dataset.nombre || 
+                            "{{ partido.nombre_partido|default('', true)|escapejs }}";
+        
+        if (!nombrePartido || nombrePartido.includes('{{')) {
+            console.error('Nombre del partido no disponible');
+            document.getElementById('estadisticas').innerHTML = `
+                <div class="alert alert-danger">
+                    Error: No se pudo obtener el nombre del partido
+                </div>`;
             return;
         }
-        
+
         fetch(`/partido/${encodeURIComponent(nombrePartido)}/estadisticas`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Error en la respuesta del servidor');
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
                 return response.json();
             })
             .then(data => {
                 if (data.error) {
-                    // Mostrar mensaje amigable
                     document.getElementById('estadisticas').innerHTML = `
                         <div class="alert alert-info">
                             ${data.error}
@@ -433,83 +705,3 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 });
-
-// Mostrar estadísticas
-function mostrarEstadisticas(data) {
-    // Rendimiento por jugador
-    const cuerpoTabla = document.getElementById('cuerpo-rendimiento');
-    cuerpoTabla.innerHTML = '';
-    for (const [jugador, stats] of Object.entries(data.rendimiento_jugadores || {})) {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-            <td>Jugador ${jugador}</td>
-            <td>${stats.porcentaje_excelente?.toFixed(1) || 0}%</td>
-            <td>${stats.porcentaje_efectivo?.toFixed(1) || 0}%</td>
-            <td>${stats.porcentaje_error?.toFixed(1) || 0}%</td>
-            <td>${stats.total_acciones}</td>
-        `;
-        cuerpoTabla.appendChild(fila);
-    }
-
-    // Gráficos
-    crearGrafico('grafico-zonas', 'bar', Object.keys(data.distribucion_zonas || {}), Object.values(data.distribucion_zonas || {}), 'Distribución de Zonas de Ataque');
-    crearGraficoStacked('grafico-tipos-accion', data.efectividad_por_tipo || {}, 'Efectividad por Tipo de Acción');
-    crearGrafico('grafico-equipos', 'pie', ['Nuestro equipo', 'Equipo rival'], [data.comparativa_equipos?.nuestro || 0, data.comparativa_equipos?.rival || 0], 'Comparativa de Equipos');
-}
-
-function crearGrafico(id, tipo, labels, data, titulo) {
-    const ctx = document.getElementById(id).getContext('2d');
-    if (window[`grafico${id}`]) window[`grafico${id}`].destroy();
-    
-    window[`grafico${id}`] = new Chart(ctx, {
-        type: tipo,
-        data: {
-            labels: tipo === 'pie' ? labels : labels.map(l => `Zona ${l}`),
-            datasets: [{
-                data: data,
-                backgroundColor: tipo === 'pie' ? 
-                    ['rgba(54, 162, 235, 0.7)', 'rgba(255, 99, 132, 0.7)'] : 
-                    ['rgba(54, 162, 235, 0.7)'],
-                borderColor: tipo === 'pie' ? 
-                    ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'] : 
-                    ['rgba(54, 162, 235, 1)'],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: tipo === 'pie' ? 'bottom' : 'top' },
-                title: { display: !!titulo, text: titulo }
-            },
-            scales: tipo !== 'pie' ? { y: { beginAtZero: true } } : undefined
-        }
-    });
-}
-
-function crearGraficoStacked(id, datos, titulo) {
-    const ctx = document.getElementById(id).getContext('2d');
-    if (window[`grafico${id}`]) window[`grafico${id}`].destroy();
-    
-    const tipos = Object.keys(datos);
-    const exitosos = tipos.map(t => datos[t].exitosos || 0);
-    const normales = tipos.map(t => (datos[t].total - datos[t].exitosos - datos[t].fallados) || 0);
-    const fallados = tipos.map(t => datos[t].fallados || 0);
-    
-    window[`grafico${id}`] = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: tipos,
-            datasets: [
-                { label: 'Éxitosos', data: exitosos, backgroundColor: 'rgba(75, 192, 192, 0.7)' },
-                { label: 'Normales', data: normales, backgroundColor: 'rgba(255, 206, 86, 0.7)' },
-                { label: 'Fallados', data: fallados, backgroundColor: 'rgba(255, 99, 132, 0.7)' }
-            ]
-        },
-        options: {
-            responsive: true,
-            scales: { y: { beginAtZero: true, stacked: true }, x: { stacked: true } },
-            plugins: { title: { display: true, text: titulo } }
-        }
-    });
-}

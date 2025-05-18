@@ -210,7 +210,8 @@
             <button class="nav-link" id="estadisticas-tab" data-bs-toggle="tab" data-bs-target="#estadisticas" type="button" role="tab">Estadísticas</button>
         </li>
     </ul>
-
+    
+    <div id="partido-data" data-nombre="{{ partido.nombre_partido }}" style="display:none;"></div>
     <div class="tab-content" id="jugadasTabContent">
         <!-- Pestaña de Registro -->
         <div class="tab-pane fade show active" id="registro" role="tabpanel">
@@ -400,107 +401,129 @@
         </div>
 
         <!-- Pestaña de Estadísticas -->
-
         <div class="tab-pane fade" id="estadisticas" role="tabpanel">
-        <div class="card">
-            <div class="card-header bg-dark text-white">
-            Informes Estadísticos del Partido
-            </div>
-            <div class="card-body">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    Informes Estadísticos del Partido: {{ partido.nombre_partido }}
+                </div>
+                <div class="card-body">
+                    <!-- Panel de resumen general mejorado -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-success">Acciones Totales</h6>
+                                    <h3 id="total-acciones" class="display-6">--</h3>
+                                    <small class="text-muted">En {{ resumen_general.total_jugadas or 0 }} jugadas</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-success">Éxitos</h6>
+                                    <h3 id="porcentaje-exitos" class="display-6">--%</h3>
+                                    <small class="text-muted">
+                                        <span id="excelentes-count">--</span> excelentes + 
+                                        <span id="buenas-count">--</span> buenas
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-warning">Normales</h6>
+                                    <h3 id="porcentaje-normales" class="display-6">--%</h3>
+                                    <small class="text-muted"><span id="normales-count">--</span> acciones</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card border-danger">
+                                <div class="card-body text-center">
+                                    <h6 class="card-title text-danger">Errores</h6>
+                                    <h3 id="porcentaje-errores" class="display-6">--%</h3>
+                                    <small class="text-muted">
+                                        <span id="errores-count">--</span> errores + 
+                                        <span id="malas-count">--</span> malas
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            <!-- Panel de resumen general -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-4">
-                <div class="card border-success">
-                    <div class="card-body text-center">
-                    <h6 class="card-title text-success">Promedio Éxitos</h6>
-                    <h3 id="promedio-exitos" class="display-6">--%</h3>
+                    <!-- Gráficos estadísticos -->
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-1">📈 Distribución por Zonas</h5>
+                            <p class="text-muted small">Cantidad de acciones en cada zona del campo</p>
+                            <canvas id="grafico-zonas" height="200"></canvas>
+                            <div class="mt-2" id="tabla-zonas"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5 class="mb-1">🎯 Efectividad por Tipo de Acción</h5>
+                            <p class="text-muted small">Comparación de acciones exitosas, normales y fallidas</p>
+                            <canvas id="grafico-tipos-accion" height="200"></canvas>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h5 class="mb-1">🤝 Comparativa de Equipos</h5>
+                            <p class="text-muted small">Efectividad comparativa entre ambos equipos</p>
+                            <canvas id="grafico-equipos" height="200"></canvas>
+                            <div class="mt-3" id="detalle-equipos"></div>
+                        </div>
+                    </div>
+
+                    <!-- Tablas detalladas -->
+                    <div class="mt-5">
+                        <h5 class="mb-2">📊 Resumen por Tipo de Acción</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Acción</th>
+                                        <th>Excelente</th>
+                                        <th>Buena</th>
+                                        <th>Normal</th>
+                                        <th>Mala</th>
+                                        <th>Error</th>
+                                        <th>Total</th>
+                                        <th>Efectividad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabla-resumen-acciones">
+                                    <!-- Se llena con JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <h5 class="mb-2">👤 Rendimiento por Jugador</h5>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-sm text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Jugador</th>
+                                        <th>Excelente</th>
+                                        <th>Buena</th>
+                                        <th>Normal</th>
+                                        <th>Mala</th>
+                                        <th>Error</th>
+                                        <th>Total</th>
+                                        <th>Efectividad</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cuerpo-rendimiento">
+                                    <!-- Se llena con JS -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                </div>
-                <div class="col-md-4">
-                <div class="card border-warning">
-                    <div class="card-body text-center">
-                    <h6 class="card-title text-warning">Promedio Normales</h6>
-                    <h3 id="promedio-normales" class="display-6">--%</h3>
-                    </div>
-                </div>
-                </div>
-                <div class="col-md-4">
-                <div class="card border-danger">
-                    <div class="card-body text-center">
-                    <h6 class="card-title text-danger">Errores</h6>
-                    <h3 id="total-errores" class="display-6">--%</h3>
-                    </div>
-                </div>
-                </div>
             </div>
-
-            <!-- Gráficos estadísticos -->
-            <div class="row g-4">
-                <div class="col-md-6">
-                <h5 class="mb-1">📈 Zonas donde más se ataca</h5>
-                <p class="text-muted small">Cantidad de jugadas dirigidas a cada zona</p>
-                <canvas id="grafico-zonas" height="200"></canvas>
-                </div>
-
-                <div class="col-md-6">
-                <h5 class="mb-1">🎯 Efectividad por Tipo de Acción</h5>
-                <p class="text-muted small">Comparación de jugadas exitosas, normales y fallidas</p>
-                <canvas id="grafico-tipos-accion" height="200"></canvas>
-                </div>
-
-                <div class="col-md-6">
-                <h5 class="mb-1">🤝 Comparativa de Equipos</h5>
-                <p class="text-muted small">Total de acciones positivas por equipo</p>
-                <canvas id="grafico-equipos" height="200"></canvas>
-                </div>
-            </div>
-
-            <!-- Tabla resumen -->
-            <div class="mt-5">
-                <h5 class="mb-2">📊 Resumen por Tipo de Acción</h5>
-                <div class="table-responsive">
-                <table class="table table-bordered table-sm text-center">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Acción</th>
-                        <th>Éxito</th>
-                        <th>Normal</th>
-                        <th>Error</th>
-                        <th>Total</th>
-                    </tr>
-                    </thead>
-                    <tbody id="tabla-resumen-acciones">
-                    <!-- Se llena con JS -->
-                    </tbody>
-                </table>
-                </div>
-            </div>
-
-            <!-- Tabla rendimiento por jugador -->
-            <div class="mt-5">
-                <h5 class="mb-2">👤 Rendimiento por Jugador</h5>
-                <div class="table-responsive">
-                <table class="table table-bordered table-sm text-center">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Jugador</th>
-                        <th>Excelente</th>
-                        <th>Efectivo</th>
-                        <th>Error</th>
-                        <th>Total</th>
-                    </tr>
-                    </thead>
-                    <tbody id="cuerpo-rendimiento">
-                    <!-- Se llena con JS -->
-                    </tbody>
-                </table>
-                </div>
-            </div>
-
-            </div>
-        </div>
         </div>
 
             </div>
@@ -510,7 +533,7 @@
 <script src="{{ url_for('static', filename='js/visualizacion.js') }}"></script>
 
 <script>
-  const nombrePartido = "{{ partido.nombre_partido | escape }}";
+  const nombrePartido = "{{ partido.nombre_partido|escape }}";
 </script>
 
 {% endblock %}
