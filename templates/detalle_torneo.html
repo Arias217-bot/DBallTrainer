@@ -78,6 +78,24 @@
                     📁 Carga Automática
                 </button>
                 <button class="btn btn-danger" id="borrarRivalesSeleccionados">Borrar seleccionados</button>
+                <!-- Botón para mostrar el formulario -->
+                <button class="btn btn-success text-white" type="button" data-bs-toggle="collapse" data-bs-target="#jsonUploadPanel" aria-expanded="false" aria-controls="jsonUploadPanel">
+                    📤 Enviar JSON a n8n
+                </button>
+
+                <!-- Formulario para subir archivo JSON -->
+                <div class="collapse mt-3" id="jsonUploadPanel">
+                <div class="card card-body">
+                    <form id="jsonUploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="jsonFile" class="form-label">Selecciona archivo JSON</label>
+                        <input type="file" class="form-control" id="jsonFile" name="jsonFile" accept=".json" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Enviar a n8n</button>
+                    </form>
+                </div>
+                </div>
+
             </div>
             <form id="rivalesForm">
                 <table class="table text-center" style="border-radius: 10px; overflow: hidden;">
@@ -326,10 +344,6 @@
 <div class="collapse mb-4" id="autoUploadPanel">
     <div class="card card-body">
       <form id="autoUploadForm" action="{{ url_for('equipo_rival.cargar_automatico_equipo_rival') }}" method="post" enctype="multipart/form-data">
-        <div class="mb-3">
-          <label for="archivo" class="form-label">Archivo PDF o Imagen</label>
-          <input class="form-control" type="file" id="archivo" name="archivo" accept=".pdf,.jpg,.jpeg,.png" required>
-        </div>
         <button type="submit" class="btn btn-primary">Cargar automáticamente</button>
       </form>
     </div>
@@ -448,26 +462,52 @@
 
     // Manejo carga automática con Ajax
     document.getElementById('autoUploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const formData = new FormData(form);
+            fetch(form.action, {
+            method: 'POST',
+            body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                // Puedes actualizar dinámicamente la lista si usas AJAX
+                window.location.reload();
+            }
+            })
+            .catch(err => {
+            console.error(err);
+            alert('Error al procesar el archivo.');
+            });
+        });
+
+        // Botón para enviar archivo JSON a n8n
+        // Enviar archivo JSON a n8n
+    document.getElementById('jsonUploadForm').addEventListener('submit', function (e) {
         e.preventDefault();
-        const form = this;
-        const formData = new FormData(form);
-        fetch(form.action, {
-        method: 'POST',
-        body: formData
+        const formData = new FormData(this);
+
+        fetch('/enviar-n8n', {
+            method: 'POST',
+            body: formData
         })
-        .then(response => response.json())
+        .then(res => res.json())
         .then(data => {
-        if (data.error) {
-            alert('Error: ' + data.error);
-        } else {
-            // Puedes actualizar dinámicamente la lista si usas AJAX
-            window.location.reload();
-        }
+            if (data.error) {
+                alert('Error: ' + data.error);
+            } else {
+                alert('Respuesta de n8n: ' + JSON.stringify(data));
+            }
         })
         .catch(err => {
-        console.error(err);
-        alert('Error al procesar el archivo.');
+            console.error(err);
+            alert('Error al enviar archivo.');
         });
     });
+
+
 </script>
 {% endblock %}

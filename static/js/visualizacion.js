@@ -1,17 +1,17 @@
 // Mapa de zonas de voleibol (nuestro equipo abajo, rival arriba)
 const zonas = {
-    'z1': { x: 16.66, y: 87.5, nombre: 'Z1', clase: 'zona-1', centerX: 16.66, centerY: 87.5 },
-    'z2': { x: 50, y: 87.5, nombre: 'Z2', clase: 'zona-2', centerX: 50, centerY: 87.5 },
-    'z3': { x: 83.33, y: 87.5, nombre: 'Z3', clase: 'zona-3', centerX: 83.33, centerY: 87.5 },
-    'z4': { x: 16.66, y: 62.5, nombre: 'Z4', clase: 'zona-4', centerX: 16.66, centerY: 62.5 },
-    'z5': { x: 50, y: 62.5, nombre: 'Z5', clase: 'zona-5', centerX: 50, centerY: 62.5 },
-    'z6': { x: 83.33, y: 62.5, nombre: 'Z6', clase: 'zona-6', centerX: 83.33, centerY: 62.5 },
-    'z7': { x: 16.66, y: 12.5, nombre: 'Z7', clase: 'zona-7', centerX: 16.66, centerY: 12.5 },
-    'z8': { x: 50, y: 12.5, nombre: 'Z8', clase: 'zona-8', centerX: 50, centerY: 12.5 },
-    'z9': { x: 83.33, y: 12.5, nombre: 'Z9', clase: 'zona-9', centerX: 83.33, centerY: 12.5 },
-    'z10': { x: 16.66, y: 37.5, nombre: 'Z10', clase: 'zona-10', centerX: 16.66, centerY: 37.5 },
-    'z11': { x: 50, y: 37.5, nombre: 'Z11', clase: 'zona-11', centerX: 50, centerY: 37.5 },
-    'z12': { x: 83.33, y: 37.5, nombre: 'Z12', clase: 'zona-12', centerX: 83.33, centerY: 37.5 }
+    'z5': { x: 16.66, y: 87.5, nombre: 'Z5', clase: 'zona-5', centerX: 16.66, centerY: 87.5 },
+    'z6': { x: 50, y: 87.5, nombre: 'Z6', clase: 'zona-6', centerX: 50, centerY: 87.5 },
+    'z1': { x: 83.33, y: 87.5, nombre: 'Z1', clase: 'zona-1', centerX: 83.33, centerY: 87.5 },
+    'z2': { x: 16.66, y: 62.5, nombre: 'Z2', clase: 'zona-2', centerX: 16.66, centerY: 62.5 },
+    'z3': { x: 50, y: 62.5, nombre: 'Z3', clase: 'zona-3', centerX: 50, centerY: 62.5 },
+    'z4': { x: 83.33, y: 62.5, nombre: 'Z4', clase: 'zona-4', centerX: 83.33, centerY: 62.5 },
+    'zr1': { x: 16.66, y: 12.5, nombre: 'ZR1', clase: 'zona-rival-1', centerX: 16.66, centerY: 12.5 },
+    'zr6': { x: 50, y: 12.5, nombre: 'ZR6', clase: 'zona-rival-6', centerX: 50, centerY: 12.5 },
+    'zr5': { x: 83.33, y: 12.5, nombre: 'ZR5', clase: 'zona-rival-5', centerX: 83.33, centerY: 12.5 },
+    'zr2': { x: 16.66, y: 37.5, nombre: 'ZR2', clase: 'zona-rival-2', centerX: 16.66, centerY: 37.5 },
+    'zr3': { x: 50, y: 37.5, nombre: 'ZR3', clase: 'zona-rival-3', centerX: 50, centerY: 37.5 },
+    'zr4': { x: 83.33, y: 37.5, nombre: 'ZR4', clase: 'zona-rival-4', centerX: 83.33, centerY: 37.5 }
 };
 
 // Variables de estado
@@ -86,7 +86,7 @@ function mostrarAccion(posicion, tipoAccion, evaluacion) {
     marker.style.top = `${posicion.centerY}%`;
     
     const iconos = {
-        saque: '⚽', recibo: '✋', pase: '⇨', remate: '⚡',
+        saque: '🏐', recibo: '✋', pase: '⇨', remate: '⚡',
         bloqueo: '🛑', defensa: '✋', contraataque: '↷', libre: '○', toque: '•'
     };
     
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('jugadaForm').addEventListener('submit', function(e) {
         e.preventDefault();
-        fetch('/partido/procesar-jugada/', {
+        fetch('/partido/procesar-jugada', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(Object.fromEntries(new FormData(this)))

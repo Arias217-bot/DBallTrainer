@@ -98,7 +98,7 @@ def create_jugada():
     
     for i, movimiento in enumerate(movimientos):
         # Expresión regular mejorada para capturar todos los componentes
-        match = re.match(r'^j(\d+)(z\d+)(\w+)([\+\-\=]{1,2})$', movimiento.strip())
+        match = re.match(r'^j(\d+)(zr?\d+)(\w+)([\+\-\=]{1,2})$', movimiento.strip())
         if not match:
             errores.append(f"Formato inválido en movimiento {i+1}: {movimiento}")
             continue
@@ -109,7 +109,7 @@ def create_jugada():
             'orden': i+1,
             'tipo': TIPO_ACCION,
             'jugador': f"j{jugador}",
-            'zona': f"z{zona}",
+            'zona': zona,
             'tipoAccion': tipo_accion,
             'evaluacion': evaluacion
         })

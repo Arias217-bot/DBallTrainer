@@ -1,5 +1,6 @@
 #app.py
 from flask import Flask, render_template, jsonify, request, current_app
+import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from models.usuario import Usuario
@@ -125,6 +126,33 @@ def register():
 @app.context_processor
 def inject_documento():
     return {'documento': None}
+
+@app.route('/enviar-n8n', methods=['POST'])
+def enviar_n8n():
+    try:
+        if 'jsonFile' not in request.files:
+            return jsonify({"error": "Archivo no encontrado en la solicitud"}), 400
+
+        json_file = request.files['jsonFile']
+        if json_file.filename == '':
+            return jsonify({"error": "Nombre de archivo vacío"}), 400
+
+        n8n_webhook_url = "http://localhost:5678/webhook-test/45a5f3f8-2f7c-48ed-a036-57ca4adedb91"
+
+        files = {'data': (json_file.filename, json_file.stream, json_file.content_type)}
+        response = requests.post(n8n_webhook_url, files=files)
+
+        return jsonify({
+            "status_code": response.status_code,
+            "response": response.json()
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/')
 def home():
