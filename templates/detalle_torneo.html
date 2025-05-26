@@ -74,16 +74,16 @@
         <div class="tab-pane fade" id="rivales" role="tabpanel" aria-labelledby="rivales-tab">
             <div class="d-flex justify-content-between mb-3">
                 <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearRivalModal">Nuevo Rival</button>
-                <button class="btn btn-info text-white" type="button" data-bs-toggle="collapse" data-bs-target="#autoUploadPanel" aria-expanded="false" aria-controls="autoUploadPanel">
-                    📁 Carga Automática
-                </button>
+                
                 <button class="btn btn-danger" id="borrarRivalesSeleccionados">Borrar seleccionados</button>
                 <!-- Botón para mostrar el formulario -->
                 <button class="btn btn-success text-white" type="button" data-bs-toggle="collapse" data-bs-target="#jsonUploadPanel" aria-expanded="false" aria-controls="jsonUploadPanel">
-                    📤 Enviar JSON a n8n
+                    📁 Carga Automática
                 </button>
 
-                <!-- Formulario para subir archivo JSON -->
+                </div>
+
+            <!-- Formulario para subir archivo JSON -->
                 <div class="collapse mt-3" id="jsonUploadPanel">
                 <div class="card card-body">
                     <form id="jsonUploadForm" enctype="multipart/form-data">
@@ -93,7 +93,6 @@
                     </div>
                     <button type="submit" class="btn btn-primary">Enviar a n8n</button>
                     </form>
-                </div>
                 </div>
 
             </div>

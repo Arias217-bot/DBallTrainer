@@ -189,6 +189,17 @@
         opacity: 0.85;
     }
 
+    #mapa-calor-zonas {
+        height: 400px;
+        width: 100%;
+        position: relative;
+        background-color: #2a939b;
+        border: 3px solid #333;
+        overflow: hidden;
+        box-sizing: border-box;
+    }
+
+
 </style>
 {% endblock %}
 
@@ -458,7 +469,12 @@
                         <div class="col-md-6">
                             <h5 class="mb-1">📈 Distribución por Zonas</h5>
                             <p class="text-muted small">Cantidad de acciones en cada zona del campo</p>
-                            <canvas id="grafico-zonas" height="200"></canvas>
+                            <div class="cancha-container mb-3" style="height: 400px;">
+                            <div id="mapa-calor-zonas" class="cancha position-relative">
+                                <div class="red-line"></div>
+                                <!-- Las zonas se insertan dinámicamente -->
+                            </div>
+                            </div>
                             <div class="mt-2" id="tabla-zonas"></div>
                         </div>
 

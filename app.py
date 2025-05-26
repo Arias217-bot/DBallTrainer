@@ -137,7 +137,7 @@ def enviar_n8n():
         if json_file.filename == '':
             return jsonify({"error": "Nombre de archivo vacío"}), 400
 
-        n8n_webhook_url = "http://localhost:5678/webhook-test/45a5f3f8-2f7c-48ed-a036-57ca4adedb91"
+        n8n_webhook_url = "http://10.10.1.30:5678/webhook-test/45a5f3f8-2f7c-48ed-a036-57ca4adedb91"
 
         files = {'data': (json_file.filename, json_file.stream, json_file.content_type)}
         response = requests.post(n8n_webhook_url, files=files)
@@ -169,4 +169,4 @@ def internal_server_error(e):
     return render_template('500.html'), 500
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)

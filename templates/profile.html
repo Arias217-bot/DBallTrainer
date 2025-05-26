@@ -80,64 +80,99 @@
     </div>
 </section>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const editButton = document.getElementById('edit-button');
-        const saveButton = document.getElementById('save-button');
-        const cancelButton = document.getElementById('cancel-button');
-        const formInputs = document.querySelectorAll('#edit-profile-form input, #edit-profile-form select, #edit-profile-form textarea');
+document.addEventListener('DOMContentLoaded', function () {
+    const editButton = document.getElementById('edit-button');
+    const saveButton = document.getElementById('save-button');
+    const cancelButton = document.getElementById('cancel-button');
+    const formInputs = document.querySelectorAll('#edit-profile-form input, #edit-profile-form select, #edit-profile-form textarea');
 
-        editButton.addEventListener('click', function() {
-            formInputs.forEach(input => {
-                input.disabled = false;
-            });
-            editButton.style.display = 'none';
-            saveButton.style.display = 'inline-block';
-            cancelButton.style.display = 'inline-block';
+    // Activar modo edición
+    editButton.addEventListener('click', function () {
+        formInputs.forEach(input => {
+            input.disabled = false;
+        });
+        editButton.style.display = 'none';
+        saveButton.style.display = 'inline-block';
+        cancelButton.style.display = 'inline-block';
+    });
+
+    // Cancelar edición
+    cancelButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        formInputs.forEach(input => input.disabled = true);
+        editButton.style.display = 'inline-block';
+        saveButton.style.display = 'none';
+        cancelButton.style.display = 'none';
+
+        // Restaurar valores originales (esto requiere que los valores de usuario estén bien renderizados en Jinja)
+        document.getElementById('email').value = "{{ usuario.email }}";
+        document.getElementById('fecha_nacimiento').value = "{{ usuario.fecha_nacimiento }}";
+        document.getElementById('sexo').value = "{{ usuario.sexo }}";
+        document.getElementById('telefono').value = "{{ usuario.telefono }}";
+        document.getElementById('peso').value = "{{ usuario.peso }}";
+        document.getElementById('altura').value = "{{ usuario.altura }}";
+        document.getElementById('direccion').value = "{{ usuario.direccion }}";
+        document.getElementById('brado').value = "{{ usuario.brado }}";
+        document.getElementById('experiencia').value = "{{ usuario.experiencia }}";
+    });
+
+    // Guardar cambios (editar)
+    document.getElementById('edit-profile-form').addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        const documento = "{{ usuario.documento }}";
+        const formData = new FormData(this);
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
         });
 
-        cancelButton.addEventListener('click', function(event) {
-            event.preventDefault(); // Evita que el formulario se envíe
-            formInputs.forEach(input => {
-                input.disabled = true;
-            });
+        fetch(`/perfil/${documento}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(jsonData)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Error al actualizar");
+            return response.json();
+        })
+        .then(data => {
+            alert("Perfil actualizado correctamente");
+            formInputs.forEach(input => input.disabled = true);
             editButton.style.display = 'inline-block';
             saveButton.style.display = 'none';
             cancelButton.style.display = 'none';
-            // Restaura los valores originales del formulario
-            document.getElementById('email').value = "{{ usuario.email }}";
-            document.getElementById('fecha_nacimiento').value = "{{ usuario.fecha_nacimiento }}";
-            document.getElementById('sexo').value = "{{ usuario.sexo }}";
-            document.getElementById('telefono').value = "{{ usuario.telefono }}";
-            document.getElementById('direccion').value = "{{ usuario.direccion }}";
-            document.getElementById('experiencia').value = "{{ usuario.experiencia }}";
+        })
+        .catch(error => {
+            console.error("Error en actualización:", error);
+            alert("Hubo un error al actualizar el perfil.");
         });
+    });
 
-        document.getElementById('edit-profile-form').addEventListener('submit', function(event) {
-            // Aquí va tu lógica para enviar los datos del formulario al servidor
-            // y mostrar la alerta de éxito solo si la actualización fue exitosa.
-            alert('Perfil actualizado correctamente');
-            formInputs.forEach(input => {
-                input.disabled = true;
-            });
-            editButton.style.display = 'inline-block';
-            saveButton.style.display = 'none';
-            cancelButton.style.display = 'none';
-        });
-
-        document.getElementById("delete-button").addEventListener("click", function() {
+    // Eliminar usuario
+    document.getElementById("delete-button").addEventListener("click", function () {
         if (confirm("¿Estás seguro de que deseas eliminar este usuario? Esta acción no se puede deshacer.")) {
-            fetch("/usuarios/{{ usuario.documento }}", {
+            fetch("/perfil/{{ usuario.documento }}", {
                 method: "DELETE"
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error("No se pudo eliminar");
+                return response.json();
+            })
             .then(data => {
                 alert("Usuario eliminado correctamente");
-                window.location.href = "/login"; 
+                window.location.href = "/login";
             })
-            .catch(error => console.error("Error al eliminar el usuario:", error));
+            .catch(error => {
+                console.error("Error al eliminar el usuario:", error);
+                alert("Error al eliminar el usuario.");
+            });
         }
     });
-    });
+});
 </script>
+
 
 {% endblock %}

@@ -225,33 +225,40 @@ def calcular_rendimiento_jugadores(jugadas):
         for paso in jugada.datos_procesados['pasos']:
             if paso.get('tipo') == TIPO_ACCION:
                 jugador = paso.get('jugador', '')
+                zona = paso.get('zona', '')
                 evaluacion = paso.get('evaluacion', '')
                 
                 if not jugador:
                     continue
                     
-                if jugador not in rendimiento:
-                    rendimiento[jugador] = {
+                # Agregar prefijo "Rival-" a los jugadores en zonas rivales
+                jugador_key = jugador
+                if zona.startswith('zr'):
+                    jugador_key = f"Rival-{jugador}"
+                
+                if jugador_key not in rendimiento:
+                    rendimiento[jugador_key] = {
                         'excelentes': 0,
                         'buenas': 0,
                         'normales': 0,
                         'malas': 0,
                         'errores': 0,
-                        'total_acciones': 0
+                        'total_acciones': 0,
+                        'es_rival': zona.startswith('zr')  # Agregar flag para identificar rivales
                     }
                 
-                rendimiento[jugador]['total_acciones'] += 1
+                rendimiento[jugador_key]['total_acciones'] += 1
                 
                 if evaluacion == '++':
-                    rendimiento[jugador]['excelentes'] += 1
+                    rendimiento[jugador_key]['excelentes'] += 1
                 elif evaluacion == '+':
-                    rendimiento[jugador]['buenas'] += 1
+                    rendimiento[jugador_key]['buenas'] += 1
                 elif evaluacion == '=':
-                    rendimiento[jugador]['normales'] += 1
+                    rendimiento[jugador_key]['normales'] += 1
                 elif evaluacion == '-':
-                    rendimiento[jugador]['malas'] += 1
+                    rendimiento[jugador_key]['malas'] += 1
                 elif evaluacion == '--':
-                    rendimiento[jugador]['errores'] += 1
+                    rendimiento[jugador_key]['errores'] += 1
     
     # Calcular porcentajes para cada jugador
     for jugador, stats in rendimiento.items():
@@ -329,15 +336,14 @@ def calcular_comparativa_equipos(jugadas):
             
         for paso in jugada.datos_procesados['pasos']:
             if paso.get('tipo') == TIPO_ACCION:
-                jugador = paso.get('jugador', '')
+                zona = paso.get('zona', '')
                 evaluacion = paso.get('evaluacion', '')
                 
-                # Determinar equipo basado en el número de jugador
-                try:
-                    num_jugador = int(jugador.replace('j', ''))
-                    equipo = 'nuestro' if 1 <= num_jugador <= 6 else 'rival'
-                except:
-                    continue
+                # Determinar equipo basado en la zona
+                if zona.startswith('zr'):  # Zonas rivales
+                    equipo = 'rival'
+                else:  # Zonas locales (z1-z6)
+                    equipo = 'nuestro'
                 
                 equipos[equipo]['total'] += 1
                 

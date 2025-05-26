@@ -95,6 +95,11 @@ function mostrarAccion(posicion, tipoAccion, evaluacion) {
         '-': 'mala', '--': 'error'
     };
     
+    // Añadir clase adicional para rivales
+    if (posicion.clase.includes('rival')) {
+        marker.classList.add('rival-marker');
+    }
+    
     marker.textContent = iconos[tipoAccion] || tipoAccion.substring(0,1);
     marker.classList.add(clases[evaluacion]);
     marker.title = `${tipoAccion} (${evaluacion})`;
@@ -349,27 +354,49 @@ function actualizarResumenGeneral(resumen) {
 }
 
 function crearGraficoZonas(datosZonas) {
-    const zonasOrdenadas = Object.entries(datosZonas)
-        .sort((a, b) => b[1] - a[1]);
+    const cancha = document.getElementById('mapa-calor-zonas');
+    cancha.innerHTML = '<div class="red-line"></div>';  // Limpiar y agregar red
     
-    const labels = zonasOrdenadas.map(([zona]) => `Zona ${zona.substring(1)}`);
-    const data = zonasOrdenadas.map(([_, count]) => count);
-    
-    // Crear tabla de zonas
-    const tablaZonas = document.getElementById('tabla-zonas');
-    tablaZonas.innerHTML = `
-        <div class="d-flex flex-wrap gap-2 justify-content-center">
-            ${zonasOrdenadas.map(([zona, count]) => `
-                <span class="badge bg-primary">
-                    ${zona}: ${count} acción${count !== 1 ? 'es' : ''}
-                </span>
-            `).join('')}
-        </div>
+    // Pintar zonas como fondo (como en inicializarCancha)
+    Object.entries(zonas).forEach(([key, zona]) => {
+        const divZona = document.createElement('div');
+        divZona.className = `zona ${zona.clase}`;
+        divZona.textContent = zona.nombre;
+        cancha.appendChild(divZona);
+    });
+
+    // Calcular máximo valor
+    const maxValor = Math.max(...Object.values(datosZonas));
+
+    // Añadir puntos de calor
+    Object.entries(zonas).forEach(([zonaID, zonaData]) => {
+        const valor = datosZonas[zonaID] || 0;
+        if (valor === 0) return;
+
+        const intensidad = valor / maxValor;
+        const color = `rgba(255, 0, 0, ${Math.min(0.15 + intensidad * 0.85, 1)})`;
+
+        const heat = document.createElement('div');
+        heat.style.position = 'absolute';
+        heat.style.left = `${zonaData.centerX}%`;
+        heat.style.top = `${zonaData.centerY}%`;
+        heat.style.transform = 'translate(-50%, -50%)';
+        heat.style.width = '70px';
+        heat.style.height = '70px';
+        heat.style.borderRadius = '50%';
+        heat.style.backgroundColor = color;
+        heat.title = `${zonaID}: ${valor} acciones`;
+
+        cancha.appendChild(heat);
+    });
+
+    // Mensaje debajo
+    const leyenda = document.getElementById('tabla-zonas');
+    leyenda.innerHTML = `
+        <small class="text-muted">Zonas con más acciones se muestran con mayor intensidad en rojo.</small>
     `;
-    
-    // Crear gráfico
-    crearGrafico('grafico-zonas', 'bar', labels, data, 'Distribución por Zonas');
 }
+
 
 function crearGraficoEfectividad(datosEfectividad) {
     const tipos = Object.keys(datosEfectividad);
@@ -434,64 +461,77 @@ function crearGraficoEfectividad(datosEfectividad) {
 
 function crearGraficoEquipos(datosEquipos) {
     const ctx = document.getElementById('grafico-equipos').getContext('2d');
-    
-    // Crear tabla comparativa
-    const detalleEquipos = document.getElementById('detalle-equipos');
-    detalleEquipos.innerHTML = `
-        <div class="row text-center">
-            <div class="col-md-6">
-                <h6>Nuestro Equipo</h6>
-                <p>Efectividad: ${datosEquipos.nuestro?.porcentaje_efectivo?.toFixed(1) || 0}%</p>
-                <p>Excelentes: ${datosEquipos.nuestro?.excelentes || 0}</p>
-            </div>
-            <div class="col-md-6">
-                <h6>Equipo Rival</h6>
-                <p>Efectividad: ${datosEquipos.rival?.porcentaje_efectivo?.toFixed(1) || 0}%</p>
-                <p>Errores: ${datosEquipos.rival?.errores || 0}</p>
-            </div>
-        </div>
-    `;
-    
+
+    const etiquetas = ['Nuestro equipo', 'Equipo rival'];
+    const equipos = ['nuestro', 'rival'];
+
+    const categorias = ['excelentes', 'buenas', 'normales', 'malas', 'errores'];
+    const colores = {
+        excelentes: 'rgba(75, 192, 192, 0.8)',
+        buenas: 'rgba(153, 255, 51, 0.8)',
+        normales: 'rgba(255, 206, 86, 0.8)',
+        malas: 'rgba(255, 159, 64, 0.8)',
+        errores: 'rgba(255, 99, 132, 0.8)'
+    };
+
+    const datasets = categorias.map(cat => ({
+        label: cat.charAt(0).toUpperCase() + cat.slice(1),
+        backgroundColor: colores[cat],
+        data: equipos.map(eq => datosEquipos[eq]?.[cat] || 0),
+        stack: 'acciones'
+    }));
+
     if (window.graficoEquipos) window.graficoEquipos.destroy();
-    
+
     window.graficoEquipos = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
-            labels: ['Nuestro equipo', 'Equipo rival'],
-            datasets: [{
-                data: [
-                    datosEquipos.nuestro?.total || 0, 
-                    datosEquipos.rival?.total || 0
-                ],
-                backgroundColor: [
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 99, 132, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 99, 132, 1)'
-                ],
-                borderWidth: 1
-            }]
+            labels: etiquetas,
+            datasets: datasets
         },
         options: {
             responsive: true,
+            scales: {
+                x: {
+                    stacked: true
+                },
+                y: {
+                    stacked: true,
+                    beginAtZero: true
+                }
+            },
             plugins: {
-                legend: { position: 'bottom' },
-                title: { display: true, text: 'Acciones por Equipo' },
+                title: {
+                    display: true,
+                    text: 'Distribución de Acciones por Equipo'
+                },
                 tooltip: {
-                    callbacks: {
-                        afterLabel: function(context) {
-                            const equipo = context.label === 'Nuestro equipo' ? 'nuestro' : 'rival';
-                            const datos = datosEquipos[equipo] || {};
-                            return `Efectividad: ${datos.porcentaje_efectivo?.toFixed(1) || 0}%`;
-                        }
-                    }
+                    mode: 'index',
+                    intersect: false
                 }
             }
         }
     });
+
+    // También actualiza la tabla debajo si quieres más detalles:
+    const detalleEquipos = document.getElementById('detalle-equipos');
+    detalleEquipos.innerHTML = `
+        <div class="row text-center">
+            ${equipos.map(eq => `
+                <div class="col-md-6">
+                    <h6>${eq === 'nuestro' ? 'Nuestro Equipo' : 'Equipo Rival'}</h6>
+                    <p>Acciones Totales: ${datosEquipos[eq]?.total || 0}</p>
+                    <p>Excelentes: ${datosEquipos[eq]?.excelentes || 0}</p>
+                    <p>Buenas: ${datosEquipos[eq]?.buenas || 0}</p>
+                    <p>Normales: ${datosEquipos[eq]?.normales || 0}</p>
+                    <p>Malas: ${datosEquipos[eq]?.malas || 0}</p>
+                    <p>Errores: ${datosEquipos[eq]?.errores || 0}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
 }
+
 
 function llenarTablaAcciones(datosAcciones) {
     const tabla = document.getElementById('tabla-resumen-acciones');
